@@ -6,7 +6,7 @@ const MAX_COLORS = 5;
 const MIN_CHROMA = 36;
 // share of opaque pixels that must be colorful before gray ones are ignored
 const MIN_COLORFUL = 0.03;
-const MIN_DISTANCE = 64;
+const MIN_DISTANCE = 80;
 const HUES = 24;
 const BINS = 512;
 const NEUTRAL: RGB[] = [
