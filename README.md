@@ -1,7 +1,7 @@
 # afterglow-viz
 Audio-reactive visualizer and ambient backdrop for Spotify, built as a Spicetify custom app
 
-For now it only opens a diagnostics page that checks what audio data Spotify gives it. The visualizer is next.
+Rings, a mirrored spectrum, particles and the album art, moving with Spotify's own analysis of the track. The sliders button at the bottom right opens the settings, where you can also save presets.
 
 ## Install
 
