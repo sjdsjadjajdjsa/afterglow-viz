@@ -1,0 +1,181 @@
+.agv-diag {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 32px;
+  color: var(--spice-text, #fff);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.agv-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.agv-head h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.agv-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.agv-hint {
+  margin: 8px 0 24px;
+  color: var(--spice-subtext, #b3b3b3);
+}
+
+.agv-btn {
+  padding: 8px 18px;
+  border: 1px solid rgba(var(--spice-rgb-text, 255, 255, 255), 0.4);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--spice-text, #fff);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.agv-btn:hover:not(:disabled) {
+  border-color: var(--spice-text, #fff);
+}
+
+.agv-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.agv-btn-primary {
+  border-color: transparent;
+  background: var(--spice-button, #1ed760);
+  color: var(--spice-main, #121212);
+}
+
+.agv-btn-primary:hover:not(:disabled) {
+  border-color: transparent;
+  filter: brightness(1.08);
+}
+
+.agv-btn-small {
+  padding: 4px 12px;
+  font-size: 12px;
+}
+
+.agv-monitor {
+  position: relative;
+  height: 180px;
+  border-radius: 8px;
+  background: var(--spice-card, #282828);
+}
+
+.agv-monitor canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.agv-monitor-info {
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  color: var(--spice-subtext, #b3b3b3);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  white-space: pre;
+}
+
+.agv-card {
+  margin-top: 16px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: var(--spice-card, #282828);
+}
+
+.agv-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.agv-table td {
+  padding: 10px 12px 10px 0;
+  border-bottom: 1px solid rgba(var(--spice-rgb-text, 255, 255, 255), 0.08);
+  vertical-align: top;
+}
+
+.agv-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.agv-label {
+  width: 210px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.agv-detail {
+  color: var(--spice-subtext, #b3b3b3);
+  word-break: break-word;
+}
+
+.agv-num {
+  width: 60px;
+  font-variant-numeric: tabular-nums;
+}
+
+.agv-ms {
+  opacity: 0.6;
+}
+
+.agv-action {
+  width: 1%;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.agv-pill {
+  display: inline-block;
+  min-width: 56px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  background: rgba(var(--spice-rgb-text, 255, 255, 255), 0.1);
+  color: var(--spice-subtext, #b3b3b3);
+}
+
+.agv-pill-ok {
+  background: var(--spice-button, #1ed760);
+  color: var(--spice-main, #121212);
+}
+
+.agv-pill-failed {
+  background: var(--spice-notification-error, #e91429);
+  color: #fff;
+}
+
+.agv-card > summary {
+  padding: 8px 0;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.agv-report {
+  box-sizing: border-box;
+  width: 100%;
+  height: 360px;
+  margin: 8px 0;
+  padding: 12px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--spice-main, #121212);
+  color: var(--spice-text, #fff);
+  font: 12px/1.4 ui-monospace, Consolas, monospace;
+  resize: vertical;
+}
