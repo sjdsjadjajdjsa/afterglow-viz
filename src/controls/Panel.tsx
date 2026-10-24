@@ -15,10 +15,11 @@ import { Icon } from "./icons";
 import { imageFileToDataUrl } from "./image";
 import { cleanName, findPreset, type Preset } from "./storage";
 import type { Presets } from "./usePresets";
+import type { SetSettings } from "./useSettings";
 
 interface Props {
   settings: Settings;
-  setSettings: (next: Settings) => void;
+  setSettings: SetSettings;
   presets: Presets;
   onClose: () => void;
 }
@@ -46,7 +47,7 @@ const LABELS: Record<string, string> = {
 
 export function Panel({ settings, setSettings, presets, onClose }: Props) {
   const patch = <K extends Group>(key: K, values: Partial<Settings[K]>) =>
-    setSettings({ ...settings, [key]: { ...settings[key], ...values } });
+    setSettings((s) => ({ ...s, [key]: { ...s[key], ...values } }));
   const { shape, rings, spectrum, color, centerpiece, background, particles } = settings;
   const showRings = shape !== "spectrum";
   const showSpectrum = shape !== "rings";
@@ -63,7 +64,7 @@ export function Panel({ settings, setSettings, presets, onClose }: Props) {
       <PresetSection settings={settings} setSettings={setSettings} presets={presets} />
 
       <Section title="Shape">
-        <Choice options={SHAPES} value={shape} onChange={(v) => setSettings({ ...settings, shape: v })} />
+        <Choice options={SHAPES} value={shape} onChange={(v) => setSettings((s) => ({ ...s, shape: v }))} />
         {showRings && (
           <Sub title={shape === "both" ? "Rings" : null}>
             <Slider label="Count" path="rings.count" value={rings.count} onChange={(v) => patch("rings", { count: v })} />
@@ -130,11 +131,11 @@ export function Panel({ settings, setSettings, presets, onClose }: Props) {
       </Section>
 
       <Section title="Sensitivity">
-        <Slider label="Sensitivity" hideLabel path="sensitivity" value={settings.sensitivity} onChange={(v) => setSettings({ ...settings, sensitivity: v })} />
+        <Slider label="Sensitivity" hideLabel path="sensitivity" value={settings.sensitivity} onChange={(v) => setSettings((s) => ({ ...s, sensitivity: v }))} />
       </Section>
 
       <footer className="agv-panel-foot">
-        <button className="agv-btn agv-btn-small" onClick={() => setSettings(sanitize(DEFAULT_SETTINGS))}>
+        <button className="agv-btn agv-btn-small" onClick={() => setSettings((s) => keepImage(sanitize(DEFAULT_SETTINGS), s))}>
           Reset to defaults
         </button>
       </footer>
@@ -148,11 +149,11 @@ function PresetSection({ settings, setSettings, presets }: Omit<Props, "onClose"
   const existing = clean ? findPreset(presets.list, clean) : undefined;
 
   const chip = (p: Preset, own: boolean) => (
-    <span key={(own ? "u:" : "b:") + p.name} className={"agv-chip" + (sameSettings(p.settings, settings) ? " agv-chip-on" : "")}>
+    <span key={(own ? "u:" : "b:") + p.name} className={"agv-chip" + (sameSettings(keepImage(p.settings, settings), settings) ? " agv-chip-on" : "")}>
       <button
         className="agv-chip-name"
         onClick={() => {
-          setSettings(sanitize(p.settings));
+          setSettings((s) => keepImage(sanitize(p.settings), s));
           if (own) setName(p.name);
         }}
       >
@@ -287,6 +288,13 @@ function Slider({ label, hideLabel, path, value, onChange }: SliderProps) {
       />
     </label>
   );
+}
+
+// presets without their own image keep the one the user picked, so trying a
+// look doesn't throw the picked image away
+function keepImage(next: Settings, current: Settings): Settings {
+  if (next.centerpiece.image || !current.centerpiece.image) return next;
+  return { ...next, centerpiece: { ...next.centerpiece, image: current.centerpiece.image } };
 }
 
 function sameSettings(a: unknown, b: unknown): boolean {

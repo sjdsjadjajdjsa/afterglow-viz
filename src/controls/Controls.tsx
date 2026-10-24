@@ -10,10 +10,11 @@ import { Icon } from "./icons";
 import { Panel } from "./Panel";
 import { useFullscreen } from "./useFullscreen";
 import { usePresets } from "./usePresets";
+import type { SetSettings } from "./useSettings";
 
 export interface ControlsProps {
   settings: Settings;
-  setSettings: (next: Settings) => void;
+  setSettings: SetSettings;
   onDiagnostics: () => void;
   clock?: PlayerClock;
 }
