@@ -1,6 +1,6 @@
 import React from "react";
 
-type Name = "prev" | "next" | "play" | "pause" | "customize" | "enter-full" | "exit-full" | "diagnostics" | "close";
+type Name = "prev" | "next" | "play" | "pause" | "customize" | "enter-full" | "exit-full" | "close";
 
 const FILLED: Partial<Record<Name, string>> = {
   prev: "M3 2h2v12H3zM14 2.5v11L6 8z",
@@ -12,7 +12,6 @@ const FILLED: Partial<Record<Name, string>> = {
 const STROKED: Partial<Record<Name, string>> = {
   "enter-full": "M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4",
   "exit-full": "M6 2v4H2M10 2v4h4M14 10h-4v4M2 10h4v4",
-  diagnostics: "M1 8.5h3l2-5 4 9 2-4h3",
   close: "M3.5 3.5l9 9M12.5 3.5l-9 9",
 };
 

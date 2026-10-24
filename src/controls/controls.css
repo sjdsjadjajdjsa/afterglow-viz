@@ -369,6 +369,65 @@
   object-fit: cover;
 }
 
+.agv-chip-add {
+  padding: 5px 10px;
+  border: 1px dashed rgba(var(--spice-rgb-text, 255, 255, 255), 0.3);
+  background: transparent;
+  color: var(--spice-subtext, #b3b3b3);
+  cursor: pointer;
+}
+
+.agv-more {
+  border-top: 1px solid rgba(var(--spice-rgb-text, 255, 255, 255), 0.1);
+}
+
+.agv-more > summary {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 0;
+  font-size: 13px;
+  font-weight: 700;
+  list-style: none;
+  cursor: pointer;
+}
+
+.agv-more > summary::-webkit-details-marker {
+  display: none;
+}
+
+.agv-more > summary::after {
+  content: "+";
+  color: var(--spice-subtext, #b3b3b3);
+}
+
+.agv-more[open] > summary::after {
+  content: "\2212";
+}
+
+.agv-more > .agv-sub:last-child {
+  padding-bottom: 12px;
+}
+
+.agv-foot-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.agv-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--spice-subtext, #b3b3b3);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.agv-link:hover:not(:disabled) {
+  color: var(--spice-text, #fff);
+  text-decoration: underline;
+}
+
 @media (max-width: 560px) {
   .agv-bar {
     grid-template-columns: auto 1fr;

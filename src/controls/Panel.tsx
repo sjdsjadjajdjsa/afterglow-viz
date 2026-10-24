@@ -1,15 +1,5 @@
 import React, { useRef, useState } from "react";
-import {
-  BACKGROUNDS,
-  CENTER_KINDS,
-  COLOR_MODES,
-  DEFAULT_SETTINGS,
-  PARTICLES,
-  RANGES,
-  SHAPES,
-  sanitize,
-  type Settings,
-} from "../settings";
+import { DEFAULT_SETTINGS, RANGES, sanitize, type Settings } from "../settings";
 import { BUILTIN_PRESETS } from "./builtins";
 import { Icon } from "./icons";
 import { imageFileToDataUrl } from "./image";
@@ -23,35 +13,49 @@ interface Props {
   presets: Presets;
   stored: boolean;
   onClose: () => void;
+  onDiagnostics: () => void;
 }
 
 type Group = "rings" | "spectrum" | "color" | "centerpiece" | "background" | "particles";
+type Options<T extends string> = readonly (readonly [T, string])[];
 
-const LABELS: Record<string, string> = {
-  rings: "Rings",
-  spectrum: "Spectrum",
-  both: "Both",
-  rainbow: "Rainbow",
-  album: "Album",
-  centerpiece: "Centerpiece",
-  single: "Single",
-  none: "None",
-  image: "Image",
-  solid: "Solid",
-  "art-blur": "Art blur",
-  gradient: "Gradient",
-  dust: "Dust",
-  snow: "Snow",
-  stars: "Stars",
-  fireflies: "Fireflies",
-};
+const STYLES: Options<Settings["shape"]> = [
+  ["rings", "Rings"],
+  ["spectrum", "Bars"],
+  ["both", "Both"],
+];
+const MIDDLES: Options<Settings["centerpiece"]["kind"]> = [
+  ["album", "Album art"],
+  ["image", "Picture"],
+  ["none", "None"],
+];
+const BACKGROUNDS: Options<Settings["background"]["kind"]> = [
+  ["art-blur", "Blurred art"],
+  ["gradient", "Gradient"],
+  ["solid", "Plain"],
+];
+const PARTICLES: Options<Settings["particles"]["kind"]> = [
+  ["none", "None"],
+  ["dust", "Dust"],
+  ["snow", "Snow"],
+  ["stars", "Stars"],
+  ["fireflies", "Fireflies"],
+];
 
-export function Panel({ settings, setSettings, presets, stored, onClose }: Props) {
+export function Panel({ settings, setSettings, presets, stored, onClose, onDiagnostics }: Props) {
   const patch = <K extends Group>(key: K, values: Partial<Settings[K]>) =>
     setSettings((s) => ({ ...s, [key]: { ...s[key], ...values } }));
+  const picker = useImagePicker((image) => patch("centerpiece", { image, kind: "image" }));
   const { shape, rings, spectrum, color, centerpiece, background, particles } = settings;
-  const showRings = shape !== "spectrum";
-  const showSpectrum = shape !== "rings";
+  const hasPicture = !!centerpiece.image;
+
+  // the picture color mode only makes sense once there is a picture
+  const colors: Options<Settings["color"]["mode"]> = [
+    ["album", "Album"],
+    ["rainbow", "Rainbow"],
+    ...(hasPicture ? [["centerpiece", "Picture"] as const] : []),
+    ["single", "One color"],
+  ];
 
   return (
     <aside className="agv-panel" aria-label="Customize">
@@ -62,103 +66,125 @@ export function Panel({ settings, setSettings, presets, stored, onClose }: Props
         </button>
       </header>
 
-      <PresetSection settings={settings} setSettings={setSettings} presets={presets} />
+      <Looks settings={settings} setSettings={setSettings} presets={presets} />
 
-      <Section title="Shape">
-        <Choice options={SHAPES} value={shape} onChange={(v) => setSettings((s) => ({ ...s, shape: v }))} />
-        {showRings && (
-          <Sub title={shape === "both" ? "Rings" : null}>
+      <Section title="Style">
+        <Choice options={STYLES} value={shape} onChange={(v) => setSettings((s) => ({ ...s, shape: v }))} />
+      </Section>
+
+      <Section title="Colors">
+        <Choice options={colors} value={color.mode} onChange={(v) => patch("color", { mode: v })} />
+        {color.mode === "single" && (
+          <input
+            type="color"
+            className="agv-swatch"
+            aria-label="Color"
+            value={color.single}
+            onChange={(e) => patch("color", { single: e.target.value })}
+          />
+        )}
+      </Section>
+
+      <Section title="Middle">
+        <Choice
+          options={MIDDLES}
+          value={centerpiece.kind}
+          onChange={(v) => (v === "image" && !hasPicture ? picker.open() : patch("centerpiece", { kind: v }))}
+        />
+        {picker.input}
+        {(hasPicture || picker.state !== "idle") && (
+          <div className="agv-pick">
+            {hasPicture && <img className="agv-thumb" src={centerpiece.image!} alt="" />}
+            <button className="agv-link" disabled={picker.state === "busy"} onClick={picker.open}>
+              {picker.state === "failed" ? "Couldn't read that, try another" : picker.state === "busy" ? "Loading..." : "Change picture"}
+            </button>
+          </div>
+        )}
+      </Section>
+
+      <Section title="Background">
+        <Choice options={BACKGROUNDS} value={background.kind} onChange={(v) => patch("background", { kind: v })} />
+      </Section>
+
+      <Section title="Particles">
+        <Choice options={PARTICLES} value={particles.kind} onChange={(v) => patch("particles", { kind: v })} />
+      </Section>
+
+      <Section title="Intensity">
+        <Slider label="Intensity" hideLabel path="sensitivity" value={settings.sensitivity} onChange={(v) => setSettings((s) => ({ ...s, sensitivity: v }))} />
+      </Section>
+
+      <details className="agv-more">
+        <summary>Fine tune</summary>
+        {shape !== "spectrum" && (
+          <Sub title="Rings">
             <Slider label="Count" path="rings.count" value={rings.count} onChange={(v) => patch("rings", { count: v })} />
             <Slider label="Size" path="rings.size" value={rings.size} onChange={(v) => patch("rings", { size: v })} />
             <Slider label="Spread" path="rings.spread" value={rings.spread} onChange={(v) => patch("rings", { spread: v })} />
             <Slider label="Thickness" path="rings.thickness" value={rings.thickness} onChange={(v) => patch("rings", { thickness: v })} />
           </Sub>
         )}
-        {showSpectrum && (
-          <Sub title={shape === "both" ? "Spectrum" : null}>
-            <Slider label="Size" path="spectrum.size" value={spectrum.size} onChange={(v) => patch("spectrum", { size: v })} />
-            <Slider label="Spread" path="spectrum.spread" value={spectrum.spread} onChange={(v) => patch("spectrum", { spread: v })} />
+        {shape !== "rings" && (
+          <Sub title="Bars">
+            <Slider label="Height" path="spectrum.size" value={spectrum.size} onChange={(v) => patch("spectrum", { size: v })} />
+            <Slider label="Width" path="spectrum.spread" value={spectrum.spread} onChange={(v) => patch("spectrum", { spread: v })} />
             <Slider label="Thickness" path="spectrum.thickness" value={spectrum.thickness} onChange={(v) => patch("spectrum", { thickness: v })} />
           </Sub>
         )}
-      </Section>
-
-      <Section title="Color">
-        <Choice options={COLOR_MODES} value={color.mode} onChange={(v) => patch("color", { mode: v })} />
-        {color.mode === "single" && (
-          <label className="agv-row">
-            <span>Color</span>
-            <input type="color" className="agv-swatch" value={color.single} onChange={(e) => patch("color", { single: e.target.value })} />
-          </label>
-        )}
-        <Slider label="Saturation" path="color.saturation" value={color.saturation} onChange={(v) => patch("color", { saturation: v })} />
-        {color.mode !== "single" && (
-          <Slider label="Speed" path="color.speed" value={color.speed} onChange={(v) => patch("color", { speed: v })} />
-        )}
-      </Section>
-
-      <Section title="Centerpiece">
-        <Choice options={CENTER_KINDS} value={centerpiece.kind} onChange={(v) => patch("centerpiece", { kind: v })} />
-        <ImagePicker image={centerpiece.image} onPick={(image) => patch("centerpiece", { image, kind: "image" })} />
-
+        <Sub title="Colors">
+          <Slider label="Saturation" path="color.saturation" value={color.saturation} onChange={(v) => patch("color", { saturation: v })} />
+          {color.mode !== "single" && (
+            <Slider label="Drift" path="color.speed" value={color.speed} onChange={(v) => patch("color", { speed: v })} />
+          )}
+        </Sub>
         {centerpiece.kind !== "none" && (
-          <>
+          <Sub title="Middle">
             <Slider label="Size" path="centerpiece.size" value={centerpiece.size} onChange={(v) => patch("centerpiece", { size: v })} />
             <Slider label="Pulse" path="centerpiece.pulse" value={centerpiece.pulse} onChange={(v) => patch("centerpiece", { pulse: v })} />
-          </>
+          </Sub>
         )}
-      </Section>
-
-      <Section title="Background">
-        <Choice options={BACKGROUNDS} value={background.kind} onChange={(v) => patch("background", { kind: v })} />
-        {background.kind === "solid" ? (
-          <label className="agv-row">
-            <span>Color</span>
-            <input type="color" className="agv-swatch" value={background.color} onChange={(e) => patch("background", { color: e.target.value })} />
-          </label>
-        ) : (
-          <Slider label="Dim" path="background.dim" value={background.dim} onChange={(v) => patch("background", { dim: v })} />
-        )}
-      </Section>
-
-      <Section title="Particles">
-        <Choice options={PARTICLES} value={particles.kind} onChange={(v) => patch("particles", { kind: v })} />
+        <Sub title="Background">
+          {background.kind === "solid" ? (
+            <label className="agv-row">
+              <span>Color</span>
+              <input type="color" className="agv-swatch" value={background.color} onChange={(e) => patch("background", { color: e.target.value })} />
+            </label>
+          ) : (
+            <Slider label="Dim" path="background.dim" value={background.dim} onChange={(v) => patch("background", { dim: v })} />
+          )}
+        </Sub>
         {particles.kind !== "none" && (
-          <>
+          <Sub title="Particles">
             <Slider label="Amount" path="particles.amount" value={particles.amount} onChange={(v) => patch("particles", { amount: v })} />
             <Slider label="Speed" path="particles.speed" value={particles.speed} onChange={(v) => patch("particles", { speed: v })} />
-          </>
+          </Sub>
         )}
-      </Section>
-
-      <Section title="Sensitivity">
-        <Slider label="Sensitivity" hideLabel path="sensitivity" value={settings.sensitivity} onChange={(v) => setSettings((s) => ({ ...s, sensitivity: v }))} />
-      </Section>
+      </details>
 
       <footer className="agv-panel-foot">
         {!(stored && presets.stored) && <p className="agv-note">Kept for this session only. Storage is full or turned off.</p>}
-        <button className="agv-btn agv-btn-small" onClick={() => setSettings((s) => keepImage(sanitize(DEFAULT_SETTINGS), s))}>
-          Reset to defaults
-        </button>
+        <div className="agv-foot-row">
+          <button className="agv-link" onClick={() => setSettings((s) => keepImage(sanitize(DEFAULT_SETTINGS), s))}>
+            Reset
+          </button>
+          <button className="agv-link" onClick={onDiagnostics}>
+            Diagnostics
+          </button>
+        </div>
       </footer>
     </aside>
   );
 }
 
-function PresetSection({ settings, setSettings, presets }: Omit<Props, "onClose" | "stored">) {
+function Looks({ settings, setSettings, presets }: Pick<Props, "settings" | "setSettings" | "presets">) {
+  const [saving, setSaving] = useState(false);
   const [name, setName] = useState("");
   const clean = cleanName(name);
   const existing = clean ? findPreset(presets.list, clean) : undefined;
 
   const chip = (p: Preset, own: boolean) => (
     <span key={(own ? "u:" : "b:") + p.name} className={"agv-chip" + (sameSettings(keepImage(p.settings, settings), settings) ? " agv-chip-on" : "")}>
-      <button
-        className="agv-chip-name"
-        onClick={() => {
-          setSettings((s) => keepImage(sanitize(p.settings), s));
-          if (own) setName(p.name);
-        }}
-      >
+      <button className="agv-chip-name" onClick={() => setSettings((s) => keepImage(sanitize(p.settings), s))}>
         {p.name}
       </button>
       {own && (
@@ -170,64 +196,75 @@ function PresetSection({ settings, setSettings, presets }: Omit<Props, "onClose"
   );
 
   return (
-    <Section title="Presets">
+    <Section title="Looks">
       <div className="agv-chips">
         {BUILTIN_PRESETS.map((p) => chip(p, false))}
         {presets.list.map((p) => chip(p, true))}
+        {!saving && (
+          <button className="agv-chip agv-chip-add" onClick={() => setSaving(true)}>
+            Save this look
+          </button>
+        )}
       </div>
-      <form
-        className="agv-save"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (clean && presets.save(clean, settings)) setName(clean);
-        }}
-      >
-        <input
-          className="agv-input"
-          value={name}
-          maxLength={40}
-          placeholder="Preset name"
-          aria-label="Preset name"
-          onChange={(e) => setName(e.target.value)}
-        />
-        <button className="agv-btn agv-btn-small" type="submit" disabled={!clean}>
-          {existing ? "Overwrite" : "Save"}
-        </button>
-      </form>
+      {saving && (
+        <form
+          className="agv-save"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (clean && presets.save(clean, settings)) {
+              setName("");
+              setSaving(false);
+            }
+          }}
+        >
+          <input
+            className="agv-input"
+            value={name}
+            maxLength={40}
+            placeholder="Name"
+            aria-label="Look name"
+            autoFocus
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                e.stopPropagation();
+                setSaving(false);
+              }
+            }}
+          />
+          <button className="agv-btn agv-btn-small" type="submit" disabled={!clean}>
+            {existing ? "Replace" : "Save"}
+          </button>
+        </form>
+      )}
     </Section>
   );
 }
 
-function ImagePicker({ image, onPick }: { image: string | null; onPick: (dataUrl: string) => void }) {
-  const input = useRef<HTMLInputElement>(null);
+function useImagePicker(onPick: (dataUrl: string) => void) {
+  const ref = useRef<HTMLInputElement>(null);
   const [state, setState] = useState<"idle" | "busy" | "failed">("idle");
-
-  return (
-    <div className="agv-pick">
-      {image && <img className="agv-thumb" src={image} alt="" />}
-      <button className="agv-btn agv-btn-small" disabled={state === "busy"} onClick={() => input.current?.click()}>
-        {state === "failed" ? "Couldn't read that, try another" : image ? "Change image" : "Choose image"}
-      </button>
-      <input
-        ref={input}
-        type="file"
-        accept="image/*"
-        hidden
-        onChange={async (e) => {
-          const file = e.target.files?.[0];
-          e.target.value = "";
-          if (!file) return;
-          setState("busy");
-          try {
-            onPick(await imageFileToDataUrl(file));
-            setState("idle");
-          } catch {
-            setState("failed");
-          }
-        }}
-      />
-    </div>
+  const input = (
+    <input
+      ref={ref}
+      type="file"
+      accept="image/*"
+      hidden
+      onChange={async (e) => {
+        const file = e.target.files?.[0];
+        e.target.value = "";
+        if (!file) return;
+        setState("busy");
+        try {
+          onPick(await imageFileToDataUrl(file));
+          setState("idle");
+        } catch {
+          setState("failed");
+        }
+      }}
+    />
   );
+  return { input, state, open: () => ref.current?.click() };
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -239,21 +276,21 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Sub({ title, children }: { title: string | null; children: React.ReactNode }) {
+function Sub({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="agv-sub">
-      {title && <h4>{title}</h4>}
+      <h4>{title}</h4>
       {children}
     </div>
   );
 }
 
-function Choice<T extends string>({ options, value, onChange }: { options: readonly T[]; value: T; onChange: (v: T) => void }) {
+function Choice<T extends string>({ options, value, onChange }: { options: Options<T>; value: T; onChange: (v: T) => void }) {
   return (
     <div className="agv-choice" role="radiogroup">
-      {options.map((o) => (
+      {options.map(([o, label]) => (
         <button key={o} role="radio" aria-checked={o === value} className={o === value ? "agv-on" : ""} onClick={() => onChange(o)}>
-          {LABELS[o] ?? o}
+          {label}
         </button>
       ))}
     </div>

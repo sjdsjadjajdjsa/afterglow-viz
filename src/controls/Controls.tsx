@@ -44,7 +44,7 @@ export function Controls({ settings, setSettings, stored, presets, onDiagnostics
 
   return (
     <div ref={ref} className={"agv-ui" + (open ? " agv-ui-open" : "")}>
-      {open && <Panel settings={settings} setSettings={setSettings} stored={stored} presets={presets} onClose={() => setOpen(false)} />}
+      {open && <Panel settings={settings} setSettings={setSettings} stored={stored} presets={presets} onClose={() => setOpen(false)} onDiagnostics={onDiagnostics} />}
       <div className="agv-bar">
         <div className="agv-now">
           {track && (
@@ -71,9 +71,6 @@ export function Controls({ settings, setSettings, stored, presets, onDiagnostics
           </button>
           <button className="agv-icon-btn" aria-label={full ? "Exit full view" : "Full view"} title={full ? "Exit full view (Esc)" : "Full view"} onClick={toggle}>
             <Icon name={full ? "exit-full" : "enter-full"} />
-          </button>
-          <button className="agv-icon-btn" aria-label="Diagnostics" title="Diagnostics" onClick={onDiagnostics}>
-            <Icon name="diagnostics" />
           </button>
         </div>
       </div>
