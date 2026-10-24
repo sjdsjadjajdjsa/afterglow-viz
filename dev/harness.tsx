@@ -35,6 +35,7 @@ const tracks: MockTrack[] = [
   { uri: "spotify:track:mock0000000000000000002", title: "Neon Orchard", artist: "Paper Satellites", album: "Night Market", durationMs: 214_000, tempo: 124, energy: 0.82, art: makeArt(["#3a0ca3", "#f72585", "#4cc9f0"]) },
   { uri: "spotify:track:mock0000000000000000003", title: "Glasshouse", artist: "Mira Vale", album: "Glasshouse", durationMs: 247_000, tempo: 100, energy: 0.55, art: makeArt(["#1b4332", "#95d5b2", "#ffd166"]) },
   { uri: "spotify:track:mock0000000000000000004", title: "Overpass Summer", artist: "Night Bus Choir", album: "Overpass Summer", durationMs: 176_000, tempo: 142, energy: 0.9, art: makeArt(["#9d0208", "#ffba08", "#03071e"]) },
+  { uri: "spotify:ad:00000000000000000000001", title: "Advertisement", artist: "Spotify", album: "", durationMs: 30_000, tempo: 100, energy: 0.5, art: null },
   { uri: "spotify:local:Night+Bus+Choir:Demos:Basement+Take:131", title: "Basement Take", artist: "Night Bus Choir", album: "Demos", durationMs: 131_000, tempo: 110, energy: 0.5, art: null },
 ];
 

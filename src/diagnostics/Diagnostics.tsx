@@ -8,11 +8,12 @@ import { SignalMonitor } from "./SignalMonitor";
 interface Props {
   clock: PlayerClock;
   reactor: Reactor;
+  onBack?: () => void;
 }
 
 type CopyState = "idle" | "copied" | "failed";
 
-export function Diagnostics({ clock, reactor }: Props) {
+export function Diagnostics({ clock, reactor, onBack }: Props) {
   const [eventLog] = useState(() => new EventLog(getSpicetify()?.Player));
   const [result, setResult] = useState<ProbeResult | null>(null);
   const [running, setRunning] = useState(false);
@@ -90,6 +91,11 @@ export function Diagnostics({ clock, reactor }: Props) {
       <header className="agv-head">
         <h1>afterglow-viz diagnostics</h1>
         <div className="agv-actions">
+          {onBack && (
+            <button className="agv-btn" onClick={onBack}>
+              Back
+            </button>
+          )}
           <button className="agv-btn" onClick={run} disabled={running}>
             {running ? "Checking..." : "Run again"}
           </button>
