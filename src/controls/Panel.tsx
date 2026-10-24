@@ -21,6 +21,7 @@ interface Props {
   settings: Settings;
   setSettings: SetSettings;
   presets: Presets;
+  stored: boolean;
   onClose: () => void;
 }
 
@@ -45,7 +46,7 @@ const LABELS: Record<string, string> = {
   fireflies: "Fireflies",
 };
 
-export function Panel({ settings, setSettings, presets, onClose }: Props) {
+export function Panel({ settings, setSettings, presets, stored, onClose }: Props) {
   const patch = <K extends Group>(key: K, values: Partial<Settings[K]>) =>
     setSettings((s) => ({ ...s, [key]: { ...s[key], ...values } }));
   const { shape, rings, spectrum, color, centerpiece, background, particles } = settings;
@@ -135,6 +136,7 @@ export function Panel({ settings, setSettings, presets, onClose }: Props) {
       </Section>
 
       <footer className="agv-panel-foot">
+        {!(stored && presets.stored) && <p className="agv-note">Kept for this session only. Storage is full or turned off.</p>}
         <button className="agv-btn agv-btn-small" onClick={() => setSettings((s) => keepImage(sanitize(DEFAULT_SETTINGS), s))}>
           Reset to defaults
         </button>
@@ -143,7 +145,7 @@ export function Panel({ settings, setSettings, presets, onClose }: Props) {
   );
 }
 
-function PresetSection({ settings, setSettings, presets }: Omit<Props, "onClose">) {
+function PresetSection({ settings, setSettings, presets }: Omit<Props, "onClose" | "stored">) {
   const [name, setName] = useState("");
   const clean = cleanName(name);
   const existing = clean ? findPreset(presets.list, clean) : undefined;
@@ -192,7 +194,6 @@ function PresetSection({ settings, setSettings, presets }: Omit<Props, "onClose"
           {existing ? "Overwrite" : "Save"}
         </button>
       </form>
-      {!presets.stored && <p className="agv-note">Kept for this session only. Storage is full or turned off.</p>}
     </Section>
   );
 }

@@ -7,10 +7,12 @@ const SAVE_DELAY_MS = 300;
 export type SetSettings = (next: Settings | ((prev: Settings) => Settings)) => void;
 
 // sliders fire on every step, so writes are batched, and flushed when the app closes
-export function useSettings(): [Settings, SetSettings] {
+export function useSettings(): [Settings, SetSettings, boolean] {
   const [settings, setState] = useState<Settings>(() => loadSettings(getStorage()) ?? DEFAULT_SETTINGS);
   const latest = useRef(settings);
   const dirty = useRef(false);
+  // false when the last save didn't reach storage
+  const [stored, setStored] = useState(true);
 
   // updaters see the latest value, so a slow image pick can't undo newer changes
   const setSettings: SetSettings = useCallback((next) => {
@@ -24,7 +26,7 @@ export function useSettings(): [Settings, SetSettings] {
     if (!dirty.current) return;
     const timer = setTimeout(() => {
       dirty.current = false;
-      saveSettings(getStorage(), latest.current);
+      setStored(saveSettings(getStorage(), latest.current));
     }, SAVE_DELAY_MS);
     return () => clearTimeout(timer);
   }, [settings]);
@@ -42,5 +44,5 @@ export function useSettings(): [Settings, SetSettings] {
     };
   }, []);
 
-  return [settings, setSettings];
+  return [settings, setSettings, stored];
 }

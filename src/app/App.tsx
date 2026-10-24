@@ -1,5 +1,6 @@
 import React, { useLayoutEffect, useState } from "react";
 import { Controls } from "../controls/Controls";
+import { usePresets } from "../controls/usePresets";
 import { useSettings } from "../controls/useSettings";
 import { Diagnostics } from "../diagnostics/Diagnostics";
 import { PlayerClock } from "../player/clock";
@@ -21,7 +22,9 @@ export function App() {
     clock: new PlayerClock(getSpicetify()?.Player),
     reactor: new Reactor(new AnalysisSource(fetchAnalysis)),
   }));
-  const [settings, setSettings] = useSettings();
+  const [settings, setSettings, stored] = useSettings();
+  // kept here so presets held in memory survive a trip to diagnostics
+  const presets = usePresets();
   const [view, setView] = useState<"viz" | "diagnostics">("viz");
   useStyle(css);
 
@@ -44,7 +47,7 @@ export function App() {
   if (view === "diagnostics") return <Diagnostics clock={clock} reactor={reactor} onBack={() => setView("viz")} />;
   return (
     <Visualizer clock={clock} reactor={reactor} settings={settings}>
-      <Controls clock={clock} settings={settings} setSettings={setSettings} onDiagnostics={() => setView("diagnostics")} />
+      <Controls clock={clock} settings={settings} setSettings={setSettings} stored={stored} presets={presets} onDiagnostics={() => setView("diagnostics")} />
     </Visualizer>
   );
 }

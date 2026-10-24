@@ -9,21 +9,23 @@ import css from "./controls.css";
 import { Icon } from "./icons";
 import { Panel } from "./Panel";
 import { useFullscreen } from "./useFullscreen";
-import { usePresets } from "./usePresets";
+import type { Presets } from "./usePresets";
 import type { SetSettings } from "./useSettings";
 
 export interface ControlsProps {
   settings: Settings;
   setSettings: SetSettings;
+  // false when settings or presets couldn't be saved
+  stored: boolean;
+  presets: Presets;
   onDiagnostics: () => void;
   clock?: PlayerClock;
 }
 
-export function Controls({ settings, setSettings, onDiagnostics, clock }: ControlsProps) {
+export function Controls({ settings, setSettings, stored, presets, onDiagnostics, clock }: ControlsProps) {
   useStyle(css);
   const ref = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
-  const presets = usePresets();
   const { full, toggle } = useFullscreen(ref, open);
   const { track, playing } = useNowPlaying(clock);
 
@@ -40,7 +42,7 @@ export function Controls({ settings, setSettings, onDiagnostics, clock }: Contro
 
   return (
     <div ref={ref} className={"agv-ui" + (open ? " agv-ui-open" : "")}>
-      {open && <Panel settings={settings} setSettings={setSettings} presets={presets} onClose={() => setOpen(false)} />}
+      {open && <Panel settings={settings} setSettings={setSettings} stored={stored} presets={presets} onClose={() => setOpen(false)} />}
       <div className="agv-bar">
         <div className="agv-now">
           {track && (
