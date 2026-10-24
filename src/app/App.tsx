@@ -26,6 +26,7 @@ export function App() {
   // kept here so presets held in memory survive a trip to diagnostics
   const presets = usePresets();
   const [view, setView] = useState<"viz" | "diagnostics">("viz");
+  const [full, setFull] = useState(false);
   useStyle(css);
 
   // layout effect so the clock has the track before child effects run
@@ -46,8 +47,11 @@ export function App() {
 
   if (view === "diagnostics") return <Diagnostics clock={clock} reactor={reactor} onBack={() => setView("viz")} />;
   return (
-    <Visualizer clock={clock} reactor={reactor} settings={settings}>
-      <Controls clock={clock} settings={settings} setSettings={setSettings} stored={stored} presets={presets} onDiagnostics={() => setView("diagnostics")} />
+    <Visualizer clock={clock} reactor={reactor} settings={settings} full={full}>
+      <Controls clock={clock} settings={settings} setSettings={setSettings} stored={stored} presets={presets} full={full} setFull={setFull} onDiagnostics={() => {
+          setFull(false);
+          setView("diagnostics");
+        }} />
     </Visualizer>
   );
 }

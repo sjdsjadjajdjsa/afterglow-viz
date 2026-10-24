@@ -20,13 +20,15 @@ export interface ControlsProps {
   presets: Presets;
   onDiagnostics: () => void;
   clock?: PlayerClock;
+  full: boolean;
+  setFull: (full: boolean) => void;
 }
 
-export function Controls({ settings, setSettings, stored, presets, onDiagnostics, clock }: ControlsProps) {
+export function Controls({ settings, setSettings, stored, presets, onDiagnostics, clock, full, setFull }: ControlsProps) {
   useStyle(css);
   const ref = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
-  const { full, toggle } = useFullscreen(ref, open);
+  const { toggle } = useFullscreen(ref, full, setFull, open);
   const { track, playing } = useNowPlaying(clock);
 
   useEffect(() => {
@@ -67,7 +69,7 @@ export function Controls({ settings, setSettings, stored, presets, onDiagnostics
           >
             <Icon name="customize" />
           </button>
-          <button className="agv-icon-btn" aria-label={full ? "Exit fullscreen" : "Fullscreen"} title={full ? "Exit fullscreen (Esc)" : "Fullscreen"} onClick={toggle}>
+          <button className="agv-icon-btn" aria-label={full ? "Exit full view" : "Full view"} title={full ? "Exit full view (Esc)" : "Full view"} onClick={toggle}>
             <Icon name={full ? "exit-full" : "enter-full"} />
           </button>
           <button className="agv-icon-btn" aria-label="Diagnostics" title="Diagnostics" onClick={onDiagnostics}>

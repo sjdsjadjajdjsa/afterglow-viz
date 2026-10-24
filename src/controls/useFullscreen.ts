@@ -1,76 +1,30 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 
-export type FullMode = "off" | "native" | "window";
-
 export const IDLE_MS = 2500;
 const ROOT = ".agv-viz";
 
-// fullscreen for the .agv-viz element around `anchor`. when the element api is
-// missing or refused, covers the window with css instead and handles esc itself
-export function useFullscreen(anchor: RefObject<HTMLElement>, holdUi: boolean) {
-  const [mode, setMode] = useState<FullMode>("off");
+// "fullscreen" fills the spotify window, not the screen, so spotify stays
+// whatever size the user has it. the app owns the state; this adds esc and
+// hides the controls and cursor while idle
+export function useFullscreen(anchor: RefObject<HTMLElement>, full: boolean, setFull: (full: boolean) => void, holdUi: boolean) {
   const root = useCallback(() => anchor.current?.closest<HTMLElement>(ROOT) ?? null, [anchor]);
 
   useEffect(() => {
-    const onChange = () => {
-      const el = root();
-      const native = !!el && document.fullscreenElement === el;
-      setMode((m) => (native ? "native" : m === "native" ? "off" : m));
-    };
-    document.addEventListener("fullscreenchange", onChange);
-    return () => {
-      document.removeEventListener("fullscreenchange", onChange);
-      const el = root();
-      if (el && document.fullscreenElement === el) document.exitFullscreen?.().catch(() => {});
-    };
-  }, [root]);
-
-  // browsers exit native fullscreen on esc themselves, but an embedding app
-  // like spotify's may not pass the key on, so handle it here too
-  useEffect(() => {
-    if (mode === "off") return;
-    const el = root();
-    if (mode === "window") el?.classList.add("agv-fullwin");
+    if (!full) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
       e.preventDefault();
-      if (mode === "native") document.exitFullscreen?.().catch(() => {});
-      else setMode("off");
+      setFull(false);
     };
     window.addEventListener("keydown", onKey);
-    return () => {
-      el?.classList.remove("agv-fullwin");
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [mode, root]);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [full, setFull]);
 
-  const idle = useIdle(root, mode !== "off" && !holdUi);
-
-  const enter = useCallback(async () => {
-    const el = root();
-    if (!el) return;
-    if (typeof el.requestFullscreen === "function") {
-      try {
-        await el.requestFullscreen();
-        return;
-      } catch {
-        // refused, use the css fallback
-      }
-    }
-    setMode("window");
-  }, [root]);
-
-  const exit = useCallback(() => {
-    if (mode === "native") document.exitFullscreen?.().catch(() => setMode("off"));
-    else setMode("off");
-  }, [mode]);
-
-  const toggle = useCallback(() => (mode === "off" ? enter() : exit()), [mode, enter, exit]);
-
-  return { mode, full: mode !== "off", idle, toggle };
+  const idle = useIdle(root, full && !holdUi);
+  const toggle = useCallback(() => setFull(!full), [full, setFull]);
+  return { idle, toggle };
 }
 
-// hides the cursor and controls after a while without mouse movement
 function useIdle(root: () => HTMLElement | null, active: boolean): boolean {
   const [idle, setIdle] = useState(false);
   const idleRef = useRef(false);

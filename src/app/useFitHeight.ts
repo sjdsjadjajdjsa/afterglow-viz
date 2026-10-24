@@ -2,10 +2,10 @@ import { useLayoutEffect, type RefObject } from "react";
 
 // spotify's main view doesn't give custom apps a height, so size the element
 // to the visible part of its scroll container
-export function useFitHeight(ref: RefObject<HTMLElement>): void {
+export function useFitHeight(ref: RefObject<HTMLElement>, skip: boolean): void {
   useLayoutEffect(() => {
     const el = ref.current;
-    if (!el) return;
+    if (!el || skip) return;
     const fit = () => {
       const top = el.getBoundingClientRect().top;
       const scroller = scrollParent(el);
@@ -15,7 +15,7 @@ export function useFitHeight(ref: RefObject<HTMLElement>): void {
     fit();
     window.addEventListener("resize", fit);
     return () => window.removeEventListener("resize", fit);
-  }, [ref]);
+  }, [ref, skip]);
 }
 
 function scrollParent(el: HTMLElement): HTMLElement | null {
