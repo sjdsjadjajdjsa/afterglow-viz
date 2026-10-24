@@ -87,7 +87,6 @@ export function createShapesLayer(): Layer {
     const drift = d.time * d.settings.color.speed * 0.1;
     const bands = frame.bands;
     const boost = 0.85 + 0.15 * frame.beat;
-    ctx.lineCap = "round";
     for (let j = 0; j < g.bars; j++) {
       // a gentle curve so quiet bands still read
       const v = Math.pow(Math.min(1, bands[j] * boost), 0.7);
@@ -96,16 +95,27 @@ export function createShapesLayer(): Layer {
       // round caps add half a width at each end, take it back so tiny bars stay tiny
       const half = Math.max(0, g.minHalf + g.maxHalf * v - g.barWidth / 2);
       const x = g.inner + g.slot * j;
+      const t = (j / g.bars) * 0.6 + drift;
+
+      // the glow is shortened so its round end lines up with the bar's end.
+      // full length, it poked out past each end as a lighter dome
+      const glow = g.barWidth * 2.4;
+      const glowHalf = Math.max(0, half + g.barWidth / 2 - glow / 2);
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(cx - x, cy - glowHalf);
+      ctx.lineTo(cx - x, cy + glowHalf);
+      ctx.moveTo(cx + x, cy - glowHalf);
+      ctx.lineTo(cx + x, cy + glowHalf);
+      ctx.lineWidth = glow;
+      ctx.strokeStyle = d.css(t, (0.1 + 0.12 * v) * fade);
+      ctx.stroke();
+
       ctx.beginPath();
       ctx.moveTo(cx - x, cy - half);
       ctx.lineTo(cx - x, cy + half);
       ctx.moveTo(cx + x, cy - half);
       ctx.lineTo(cx + x, cy + half);
-
-      const t = (j / g.bars) * 0.6 + drift;
-      ctx.lineWidth = g.barWidth + g.slot * 0.9 + size * 0.004;
-      ctx.strokeStyle = d.css(t, (0.06 + 0.1 * v) * fade);
-      ctx.stroke();
       ctx.lineWidth = g.barWidth;
       ctx.strokeStyle = d.css(t, (0.65 + 0.35 * v) * fade);
       ctx.stroke();
