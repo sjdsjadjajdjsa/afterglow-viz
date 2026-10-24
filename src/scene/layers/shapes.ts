@@ -87,6 +87,7 @@ export function createShapesLayer(): Layer {
     const drift = d.time * d.settings.color.speed * 0.1;
     const bands = frame.bands;
     const boost = 0.85 + 0.15 * frame.beat;
+    ctx.lineCap = "round";
     for (let j = 0; j < g.bars; j++) {
       // a gentle curve so quiet bands still read
       const v = Math.pow(Math.min(1, bands[j] * boost), 0.7);
@@ -97,27 +98,23 @@ export function createShapesLayer(): Layer {
       const x = g.inner + g.slot * j;
       const t = (j / g.bars) * 0.6 + drift;
 
-      // the glow is shortened so its round end lines up with the bar's end.
-      // full length, it poked out past each end as a lighter dome
-      const glow = g.barWidth * 2.4;
-      const glowHalf = Math.max(0, half + g.barWidth / 2 - glow / 2);
-      ctx.lineCap = "round";
-      ctx.beginPath();
-      ctx.moveTo(cx - x, cy - glowHalf);
-      ctx.lineTo(cx - x, cy + glowHalf);
-      ctx.moveTo(cx + x, cy - glowHalf);
-      ctx.lineTo(cx + x, cy + glowHalf);
-      ctx.lineWidth = glow;
-      ctx.strokeStyle = d.css(t, (0.1 + 0.12 * v) * fade);
-      ctx.stroke();
-
       ctx.beginPath();
       ctx.moveTo(cx - x, cy - half);
       ctx.lineTo(cx - x, cy + half);
       ctx.moveTo(cx + x, cy - half);
       ctx.lineTo(cx + x, cy + half);
+
+      // same layered glow as the rings. kept narrower than the gap between
+      // bars, so it wraps each bar evenly instead of merging along the sides
+      // and only showing at the ends
+      ctx.lineWidth = Math.min(g.barWidth * 2.5 + size * 0.006, g.slot);
+      ctx.strokeStyle = d.css(t, (0.05 + 0.08 * v) * fade);
+      ctx.stroke();
+      ctx.lineWidth = Math.min(g.barWidth * 1.6, g.slot * 0.85);
+      ctx.strokeStyle = d.css(t, (0.14 + 0.18 * v) * fade);
+      ctx.stroke();
       ctx.lineWidth = g.barWidth;
-      ctx.strokeStyle = d.css(t, (0.65 + 0.35 * v) * fade);
+      ctx.strokeStyle = d.css(t, (0.6 + 0.4 * v) * fade);
       ctx.stroke();
     }
   }
