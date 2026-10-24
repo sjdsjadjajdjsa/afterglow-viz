@@ -21,7 +21,7 @@ export class TrackAssets {
     loadImage(url, (img, readable) => {
       if (this.artUrl !== url) return;
       this.track.art = img;
-      this.track.artPalette = readable ? safePalette(img) : null;
+      this.track.artPalette = img && readable ? safePalette(img) : null;
     });
   }
 
@@ -34,20 +34,21 @@ export class TrackAssets {
     loadImage(src, (img, readable) => {
       if (this.centerSrc !== src) return;
       this.track.centerImage = img;
-      this.track.centerPalette = readable ? safePalette(img) : null;
+      this.track.centerPalette = img && readable ? safePalette(img) : null;
     });
   }
 }
 
 // tries with cors first so the pixels can be read for the palette; if the
-// server refuses, loads it plain so it can still be drawn
-function loadImage(url: string, done: (img: HTMLImageElement, readable: boolean) => void): void {
+// server refuses, loads it plain so it can still be drawn. null if both fail
+function loadImage(url: string, done: (img: HTMLImageElement | null, readable: boolean) => void): void {
   const img = new Image();
   img.crossOrigin = "anonymous";
   img.onload = () => done(img, true);
   img.onerror = () => {
     const plain = new Image();
     plain.onload = () => done(plain, false);
+    plain.onerror = () => done(null, false);
     plain.src = url;
   };
   img.src = url;
