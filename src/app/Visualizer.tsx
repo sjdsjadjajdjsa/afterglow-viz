@@ -25,10 +25,11 @@ export function Visualizer({ clock, reactor, settings, full = false, children }:
   const [assets] = useState(() => new TrackAssets());
   useFitHeight(rootRef, full);
 
-  const { kind, image } = settings.centerpiece;
+  // loaded whenever there is a picture, so its colors work even while the middle shows album art
+  const { image } = settings.centerpiece;
   useEffect(() => {
-    assets.setCenterImage(kind === "image" ? image : null);
-  }, [assets, kind, image]);
+    assets.setCenterImage(image);
+  }, [assets, image]);
 
   useEffect(() => {
     const sync = () => assets.setNowPlaying(clock.track);
