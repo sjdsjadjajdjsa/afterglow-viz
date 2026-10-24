@@ -14,7 +14,7 @@
     "dev": "node scripts/build.mjs --serve",
     "install-local": "node scripts/install-local.mjs",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run --dir test"
   },
   "devDependencies": {
     "@types/react": "18.3.31",
