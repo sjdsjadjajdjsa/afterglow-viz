@@ -38,8 +38,8 @@ export class Reactor {
     this.live = approach(this.live, playing ? 1 : 0, dt, PAUSE_EASE_MS);
 
     frame.level = follow(frame.level, raw.level * this.live, dt);
-    frame.beat = raw.beat * this.live;
-    frame.beatPhase = raw.beatPhase;
+    frame.beat = finite(raw.beat) * this.live;
+    frame.beatPhase = finite(raw.beatPhase);
     for (let i = 0; i < frame.bands.length; i++) {
       frame.bands[i] = follow(frame.bands[i], raw.bands[i] * this.live, dt);
     }
@@ -47,6 +47,13 @@ export class Reactor {
   }
 }
 
+// a NaN would otherwise stick forever, since approach() keeps it
 function follow(current: number, target: number, dt: number): number {
-  return approach(current, target, dt, target > current ? ATTACK_MS : RELEASE_MS);
+  const to = Number.isFinite(target) ? target : 0;
+  const from = Number.isFinite(current) ? current : to;
+  return approach(from, to, dt, to > from ? ATTACK_MS : RELEASE_MS);
+}
+
+function finite(x: number): number {
+  return Number.isFinite(x) ? x : 0;
 }

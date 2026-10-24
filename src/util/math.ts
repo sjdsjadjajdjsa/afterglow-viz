@@ -3,6 +3,7 @@ export function clamp01(x: number): number {
 }
 
 export function smoothstep(edge0: number, edge1: number, x: number): number {
+  if (edge1 <= edge0) return x < edge0 ? 0 : 1;
   const t = clamp01((x - edge0) / (edge1 - edge0));
   return t * t * (3 - 2 * t);
 }

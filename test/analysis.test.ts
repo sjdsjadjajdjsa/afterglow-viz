@@ -63,6 +63,25 @@ describe("sampleAnalysis", () => {
     expect(f.beat).toBeLessThan(onBeat);
   });
 
+  it("stays finite when silent segments set the quiet floor", () => {
+    const segments = Array.from({ length: 20 }, (_, i) => ({
+      start: i,
+      duration: 1,
+      loudness_start: i < 3 ? -60 : -20,
+      loudness_max: i < 3 ? -60 : -8,
+      loudness_max_time: 0.1,
+      pitches: new Array(12).fill(0.5),
+      timbre: new Array(12).fill(0),
+    }));
+    const silent = parseAnalysis({ segments, beats: [] })!;
+    expect(silent.quiet).toBe(-60);
+    const f = createFrame();
+    for (let t = 0; t < 20_000; t += 50) {
+      sampleAnalysis(silent, t, f);
+      for (const v of [f.level, f.beat, ...f.bands]) expect(Number.isFinite(v)).toBe(true);
+    }
+  });
+
   it("changes with the music", () => {
     const f = createFrame();
     const levels = new Set<number>();

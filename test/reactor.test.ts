@@ -63,4 +63,23 @@ describe("Reactor", () => {
     expect(second.tracks).toEqual([track]);
     expect(run(reactor, true, 3000).level).toBeCloseTo(0.9, 2);
   });
+
+  it("recovers from a NaN frame", () => {
+    let bad = true;
+    const source: ReactivitySource = {
+      kind: "nan",
+      setTrack() {},
+      sample(_pos, out) {
+        out.level = bad ? NaN : 0.5;
+        out.beat = bad ? NaN : 0;
+        out.beatPhase = 0;
+        out.bands.fill(bad ? NaN : 0.5);
+      },
+    };
+    const reactor = new Reactor(source);
+    run(reactor, true, 500);
+    for (const v of [reactor.frame.level, reactor.frame.beat, reactor.frame.bands[0]]) expect(Number.isFinite(v)).toBe(true);
+    bad = false;
+    expect(run(reactor, true, 3000).level).toBeCloseTo(0.5, 2);
+  });
 });
