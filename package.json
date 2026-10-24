@@ -1,0 +1,23 @@
+{
+  "name": "afterglow-viz",
+  "version": "0.1.0",
+  "description": "Audio-reactive visualizer and ambient backdrop for Spotify, built as a Spicetify custom app",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "watch": "node scripts/build.mjs --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.31",
+    "esbuild": "0.28.2",
+    "react": "18.3.1",
+    "typescript": "5.9.3",
+    "vitest": "5.0.5"
+  }
+}
