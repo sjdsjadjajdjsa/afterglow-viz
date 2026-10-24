@@ -44,7 +44,7 @@ export function App() {
   if (view === "diagnostics") return <Diagnostics clock={clock} reactor={reactor} onBack={() => setView("viz")} />;
   return (
     <Visualizer clock={clock} reactor={reactor} settings={settings}>
-      <Controls settings={settings} setSettings={setSettings} onDiagnostics={() => setView("diagnostics")} />
+      <Controls clock={clock} settings={settings} setSettings={setSettings} onDiagnostics={() => setView("diagnostics")} />
     </Visualizer>
   );
 }
