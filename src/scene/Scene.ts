@@ -12,6 +12,8 @@ export class Scene {
   private startedAt = 0;
   private readonly scaled = createFrame();
   private readonly broken = new Set<Layer>();
+  // reused every frame instead of rebuilt
+  private readonly info: DrawInfo;
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -20,7 +22,25 @@ export class Scene {
     private readonly getSettings: () => Settings,
     private readonly track: SceneTrack,
     private readonly layers: Layer[],
-  ) {}
+  ) {
+    const info: DrawInfo = {
+      ctx: null!,
+      width: 1,
+      height: 1,
+      dpr: 1,
+      cx: 0,
+      cy: 0,
+      size: 1,
+      time: 0,
+      dt: 0,
+      frame: this.scaled,
+      settings: getSettings(),
+      track,
+      color: (t) => getColor(info.settings, track, t),
+      css: (t, alpha = 1) => toCss(getColor(info.settings, track, t), alpha),
+    };
+    this.info = info;
+  }
 
   start(): void {
     this.startedAt = performance.now();
@@ -55,23 +75,17 @@ export class Scene {
     frame.beatPhase = raw.beatPhase;
     for (let i = 0; i < frame.bands.length; i++) frame.bands[i] = clamp01(raw.bands[i] * s);
 
-    const track = this.track;
-    const info: DrawInfo = {
-      ctx,
-      width,
-      height,
-      dpr,
-      cx: width / 2,
-      cy: height / 2,
-      size: Math.min(width, height),
-      time: (now - this.startedAt) / 1000,
-      dt,
-      frame,
-      settings,
-      track,
-      color: (t) => getColor(settings, track, t),
-      css: (t, alpha = 1) => toCss(getColor(settings, track, t), alpha),
-    };
+    const info = this.info;
+    info.ctx = ctx;
+    info.width = width;
+    info.height = height;
+    info.dpr = dpr;
+    info.cx = width / 2;
+    info.cy = height / 2;
+    info.size = Math.min(width, height);
+    info.time = (now - this.startedAt) / 1000;
+    info.dt = dt;
+    info.settings = settings;
 
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, width, height);
