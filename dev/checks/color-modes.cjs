@@ -27,7 +27,7 @@ async function main() {
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(url);
   await page.addScriptTag({ content: bundle.outputFiles[0].text });
-  await page.getByRole("button", { name: "Play" }).click();
+  await page.locator(".harness-play").click();
 
   let failed = 0;
   const seen = [];
@@ -40,7 +40,7 @@ async function main() {
     for (const w of result.warnings) console.log(`  note ${w}`);
     failed += result.problems.length;
     seen.push(result.palette.join("|"));
-    await page.getByRole("button", { name: "Next" }).click();
+    await page.locator(".harness button", { hasText: /^Next$/ }).click();
   }
   if (new Set(seen).size !== seen.length) {
     console.log("FAIL two tracks gave the same palette");
