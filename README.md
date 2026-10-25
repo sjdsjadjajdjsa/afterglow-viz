@@ -10,19 +10,44 @@ Rings, bars, particles and the album art, all moving with the song. It uses Spot
 
 ## Install
 
-You need [Spicetify](https://spicetify.app) set up first.
+### 1. Get Spicetify
 
-1. Download `afterglow-viz.zip` from the [latest release](https://github.com/sjdsjadjajdjsa/afterglow-viz/releases/latest).
-2. Unzip it into your Spicetify `CustomApps` folder, so you end up with `CustomApps/afterglow-viz/index.js`.
-   - Windows: `%appdata%\spicetify\CustomApps`
-   - Mac and Linux: `~/.config/spicetify/CustomApps`
-   - Not sure? Run `spicetify -c`. It prints the config file's path, and `CustomApps` sits in the same folder.
-3. Run these two commands:
+Skip this if you already have it. Close Spotify first.
+
+- **Windows:** open PowerShell and paste this:
+  ```
+  iwr -useb https://raw.githubusercontent.com/spicetify/cli/main/install.ps1 | iex
+  ```
+  Spotify has to be the one from spotify.com, not the Microsoft Store.
+- **Mac or Linux:** open Terminal and paste this:
+  ```
+  curl -fsSL https://raw.githubusercontent.com/spicetify/cli/main/install.sh | sh
+  ```
+
+When it's done, close that window and open a new one.
+
+### 2. Add afterglow-viz
+
+1. Download [afterglow-viz.zip](https://github.com/sjdsjadjajdjsa/afterglow-viz/releases/latest/download/afterglow-viz.zip).
+2. Open your `CustomApps` folder:
+   - **Windows:** press Win + R, paste `%appdata%\spicetify\CustomApps` and press Enter.
+   - **Mac or Linux:** it's `~/.config/spicetify/CustomApps`.
+
+   If the folder isn't there, make it.
+3. Unzip the download into that folder. You should now have a folder called `afterglow-viz` inside `CustomApps`.
+4. Paste these into PowerShell or Terminal:
    ```
    spicetify config custom_apps afterglow-viz
    spicetify apply
    ```
-4. Open afterglow-viz from Spotify's sidebar.
+
+Spotify restarts. Click the afterglow-viz icon in the sidebar and play a song.
+
+### Updating
+
+Download the zip again, replace the old `afterglow-viz` folder, and run `spicetify apply`.
+
+If the app disappears after Spotify updates itself, run `spicetify apply` again.
 
 ## Using it
 
