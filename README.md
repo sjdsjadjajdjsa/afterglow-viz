@@ -28,26 +28,42 @@ When it's done, close that window and open a new one.
 
 ### 2. Add afterglow-viz
 
+Paste one line, the same way as above:
+
+- **Windows (PowerShell):**
+  ```
+  iwr -useb https://raw.githubusercontent.com/sjdsjadjajdjsa/afterglow-viz/main/install.ps1 | iex
+  ```
+- **Mac or Linux (Terminal):**
+  ```
+  curl -fsSL https://raw.githubusercontent.com/sjdsjadjajdjsa/afterglow-viz/main/install.sh | sh
+  ```
+
+Spotify restarts. Click the afterglow-viz icon in the sidebar and play a song.
+
+<details>
+<summary>Rather do it by hand?</summary>
+
 1. Download [afterglow-viz.zip](https://github.com/sjdsjadjajdjsa/afterglow-viz/releases/latest/download/afterglow-viz.zip).
 2. Open your `CustomApps` folder:
    - **Windows:** press Win + R, paste `%appdata%\spicetify\CustomApps` and press Enter.
    - **Mac or Linux:** it's `~/.config/spicetify/CustomApps`.
 
    If the folder isn't there, make it.
-3. Unzip the download into that folder. You should now have a folder called `afterglow-viz` inside `CustomApps`.
-4. Paste these into PowerShell or Terminal:
+3. Unzip the download into that folder, so you have a folder called `afterglow-viz` inside `CustomApps`.
+4. Run:
    ```
    spicetify config custom_apps afterglow-viz
    spicetify apply
    ```
 
-Spotify restarts. Click the afterglow-viz icon in the sidebar and play a song.
+</details>
 
 ### Updating
 
-Download the zip again, replace the old `afterglow-viz` folder, and run `spicetify apply`.
+Run the same line from step 2 again.
 
-If the app disappears after Spotify updates itself, run `spicetify apply` again.
+If the app disappears after Spotify updates itself, run `spicetify apply`.
 
 ## Using it
 
