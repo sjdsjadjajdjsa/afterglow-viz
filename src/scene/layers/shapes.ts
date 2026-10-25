@@ -81,35 +81,79 @@ export function createShapesLayer(): Layer {
     }
   }
 
+  // per bar, filled in a first pass so the halo can go down before the bars
+  const barHalf = new Float32Array(64);
+  const barLevel = new Float32Array(64);
+  let glowA: HTMLCanvasElement | null = null;
+  let glowB: HTMLCanvasElement | null = null;
+
   function drawSpectrum(d: DrawInfo) {
     const { ctx, frame, size, cx, cy } = d;
     const g = spectrumGeometry(d.settings, d.width, size, d.dpr, spectrum);
     const drift = d.time * d.settings.color.speed * 0.1;
     const bands = frame.bands;
     const boost = 0.85 + 0.15 * frame.beat;
-    ctx.lineCap = "round";
-    for (let j = 0; j < g.bars; j++) {
+    const n = Math.min(g.bars, barHalf.length);
+    for (let j = 0; j < n; j++) {
       // a gentle curve so quiet bands still read
       const v = Math.pow(Math.min(1, bands[j] * boost), 0.7);
-      // outer bars fade a little so the ends taper off
-      const fade = 1 - 0.45 * (j / g.bars) * (j / g.bars);
+      barLevel[j] = v;
       // round caps add half a width at each end, take it back so tiny bars stay tiny
-      const half = Math.max(0, g.minHalf + g.maxHalf * v - g.barWidth / 2);
+      barHalf[j] = Math.max(0, g.minHalf + g.maxHalf * v - g.barWidth / 2);
+    }
+    const fadeAt = (j: number) => 1 - 0.45 * (j / g.bars) * (j / g.bars);
+    const hueAt = (j: number) => (j / g.bars) * 0.6 + drift;
+    const path = (c: CanvasRenderingContext2D, j: number) => {
       const x = g.inner + g.slot * j;
-      const t = (j / g.bars) * 0.6 + drift;
+      const half = barHalf[j];
+      c.beginPath();
+      c.moveTo(cx - x, cy - half);
+      c.lineTo(cx - x, cy + half);
+      c.moveTo(cx + x, cy - half);
+      c.lineTo(cx + x, cy + half);
+    };
 
-      ctx.beginPath();
-      ctx.moveTo(cx - x, cy - half);
-      ctx.lineTo(cx - x, cy + half);
-      ctx.moveTo(cx + x, cy - half);
-      ctx.lineTo(cx + x, cy + half);
+    // soft halo like the rings have: the bars drawn small, blurred, and laid
+    // underneath scaled back up. blur spreads the same way on every side, so
+    // the ends look like the sides
+    if (typeof document !== "undefined") {
+      const gw = Math.max(1, Math.ceil(d.width / 4));
+      const gh = Math.max(1, Math.ceil(d.height / 4));
+      glowA ??= document.createElement("canvas");
+      glowB ??= document.createElement("canvas");
+      for (const c of [glowA, glowB]) {
+        if (c.width !== gw || c.height !== gh) {
+          c.width = gw;
+          c.height = gh;
+        }
+      }
+      const a = glowA.getContext("2d");
+      const b = glowB.getContext("2d");
+      if (a && b) {
+        a.setTransform(1, 0, 0, 1, 0, 0);
+        a.clearRect(0, 0, gw, gh);
+        a.setTransform(gw / d.width, 0, 0, gh / d.height, 0, 0);
+        a.lineCap = "round";
+        a.lineWidth = g.barWidth * 1.4 + size * 0.004;
+        for (let j = 0; j < n; j++) {
+          path(a, j);
+          a.strokeStyle = d.css(hueAt(j), (0.3 + 0.4 * barLevel[j]) * fadeAt(j));
+          a.stroke();
+        }
+        b.clearRect(0, 0, gw, gh);
+        b.filter = `blur(${Math.max(1, (size / 4) * 0.012)}px)`;
+        b.drawImage(glowA, 0, 0);
+        b.filter = "none";
+        ctx.drawImage(glowB, 0, 0, d.width, d.height);
+      }
+    }
 
-      // same layered glow as the rings. kept narrower than the gap between
-      // bars, so it wraps each bar evenly instead of merging along the sides
-      // and only showing at the ends
-      ctx.lineWidth = Math.min(g.barWidth * 2.5 + size * 0.006, g.slot);
-      ctx.strokeStyle = d.css(t, (0.05 + 0.08 * v) * fade);
-      ctx.stroke();
+    ctx.lineCap = "round";
+    for (let j = 0; j < n; j++) {
+      const v = barLevel[j];
+      const fade = fadeAt(j);
+      const t = hueAt(j);
+      path(ctx, j);
       ctx.lineWidth = Math.min(g.barWidth * 1.6, g.slot * 0.85);
       ctx.strokeStyle = d.css(t, (0.14 + 0.18 * v) * fade);
       ctx.stroke();
