@@ -4,6 +4,7 @@ import type { Reactor } from "../reactivity/reactor";
 import { createFrame } from "../reactivity/types";
 import type { Settings } from "../settings";
 import { clamp01 } from "../util/math";
+import { bigChange, FADE_MS } from "./transition";
 import type { DrawInfo, Layer, SceneTrack } from "./types";
 
 export class Scene {
@@ -14,6 +15,10 @@ export class Scene {
   private readonly broken = new Set<Layer>();
   // reused every frame instead of rebuilt
   private readonly info: DrawInfo;
+  // the last frame before a big settings change, faded out over the new one
+  private snapshot: HTMLCanvasElement | null = null;
+  private fadeFrom = -Infinity;
+  private lastSettings: Settings | null = null;
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -67,6 +72,10 @@ export class Scene {
     }
 
     const settings = this.getSettings();
+    if (this.lastSettings && settings !== this.lastSettings && bigChange(this.lastSettings, settings)) {
+      this.takeSnapshot(now);
+    }
+    this.lastSettings = settings;
     const raw = this.reactor.update(this.clock.positionMs(), this.clock.playing, dt * 1000);
     const frame = this.scaled;
     const s = settings.sensitivity;
@@ -101,5 +110,26 @@ export class Scene {
       }
       ctx.restore();
     }
+
+    const fade = 1 - (now - this.fadeFrom) / FADE_MS;
+    if (fade > 0 && this.snapshot) {
+      ctx.globalAlpha = fade * fade;
+      ctx.drawImage(this.snapshot, 0, 0, width, height);
+      ctx.globalAlpha = 1;
+    }
   };
+
+  private takeSnapshot(now: number): void {
+    const { canvas } = this;
+    const snap = (this.snapshot ??= document.createElement("canvas"));
+    if (snap.width !== canvas.width || snap.height !== canvas.height) {
+      snap.width = canvas.width;
+      snap.height = canvas.height;
+    }
+    const sctx = snap.getContext("2d");
+    if (!sctx) return;
+    sctx.clearRect(0, 0, snap.width, snap.height);
+    sctx.drawImage(canvas, 0, 0);
+    this.fadeFrom = now;
+  }
 }
