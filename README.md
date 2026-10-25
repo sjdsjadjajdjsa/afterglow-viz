@@ -1,23 +1,39 @@
 # afterglow-viz
 Audio-reactive visualizer and ambient backdrop for Spotify, built as a Spicetify custom app
 
-Rings, a mirrored spectrum, particles and the album art, moving with Spotify's own analysis of the track. The sliders button at the bottom right opens the settings, where you can also save presets.
+![afterglow-viz](docs/demo.gif)
+
+Rings, bars, particles and the album art, all moving with the song. It uses Spotify's own analysis of each track, so the beats and loudness actually line up.
 
 ## Install
 
-Needs [Spicetify](https://spicetify.app) and Node 22.12+.
+You need [Spicetify](https://spicetify.app) set up first.
+
+1. Download `afterglow-viz.zip` from the [latest release](https://github.com/sjdsjadjajdjsa/afterglow-viz/releases/latest).
+2. Unzip it into your Spicetify `CustomApps` folder, so you end up with `CustomApps/afterglow-viz/index.js`.
+   - Windows: `%appdata%\spicetify\CustomApps`
+   - Mac and Linux: `~/.config/spicetify/CustomApps`
+   - Not sure? Run `spicetify -c`. It prints the config file's path, and `CustomApps` sits in the same folder.
+3. Run these two commands:
+   ```
+   spicetify config custom_apps afterglow-viz
+   spicetify apply
+   ```
+4. Open afterglow-viz from Spotify's sidebar.
+
+## Using it
+
+- Move your mouse near the bottom for play controls, settings and full view.
+- In settings, pick a look, or mix your own and save it.
+- Full view fills the Spotify window. Esc goes back.
+
+## Build it yourself
+
+Needs Node 22.12 or newer.
 
 ```
 npm install
 npm run install-local
 ```
 
-Then open afterglow-viz from the Spotify sidebar.
-
-## Dev
-
-```
-npm run dev
-```
-
-Opens http://127.0.0.1:5173/dev.html with a fake Spotify player, so you can work on it in a normal browser.
+`npm run dev` opens a test page with a fake Spotify player at http://127.0.0.1:5173/dev.html.
