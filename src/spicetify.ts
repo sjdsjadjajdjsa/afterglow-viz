@@ -19,6 +19,9 @@ export interface PlayerLike {
   next?(): void;
   back?(): void;
   seek?(position: number): void;
+  // liked songs
+  getHeart?(): boolean;
+  toggleHeart?(): void;
 }
 
 export interface SpicetifyLike {

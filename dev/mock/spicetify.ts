@@ -55,6 +55,7 @@ export function createMockSpicetify({
   let anchorAt = now();
   let shape: DataShape = "current";
   let audio: AudioMode = "available";
+  const liked = new Set<string>();
   let stopTimer: (() => void) | null = null;
 
   const track = () => tracks[index];
@@ -183,6 +184,12 @@ export function createMockSpicetify({
     getProgress: () => Math.round(position()),
     getDuration: () => track().durationMs,
     isPlaying: () => playing,
+    getHeart: () => liked.has(track().uri),
+    toggleHeart() {
+      const uri = track().uri;
+      if (!liked.delete(uri)) liked.add(uri);
+      watchers.forEach((fn) => fn());
+    },
     play: () => setPlaying(true),
     pause: () => setPlaying(false),
     togglePlay: () => setPlaying(!playing),

@@ -1,8 +1,11 @@
 import React from "react";
 
-type Name = "prev" | "next" | "play" | "pause" | "customize" | "enter-full" | "exit-full" | "close";
+type Name = "prev" | "next" | "play" | "pause" | "customize" | "enter-full" | "exit-full" | "close" | "heart" | "heart-on";
+
+const HEART = "M8 13.5S2.2 9.9 2.2 5.9A2.9 2.9 0 0 1 8 4.6a2.9 2.9 0 0 1 5.8 1.3c0 4-5.8 7.6-5.8 7.6z";
 
 const FILLED: Partial<Record<Name, string>> = {
+  "heart-on": HEART,
   prev: "M3 2h2v12H3zM14 2.5v11L6 8z",
   next: "M11 2h2v12h-2zM2 2.5v11L10 8z",
   play: "M4.5 2.2v11.6L13.8 8z",
@@ -13,6 +16,7 @@ const STROKED: Partial<Record<Name, string>> = {
   "enter-full": "M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4",
   "exit-full": "M6 2v4H2M10 2v4h4M14 10h-4v4M2 10h4v4",
   close: "M3.5 3.5l9 9M12.5 3.5l-9 9",
+  heart: HEART,
 };
 
 export function Icon({ name }: { name: Name }) {

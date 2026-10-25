@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useStyle } from "../app/useStyle";
 import type { PlayerClock } from "../player/clock";
 import type { NowPlaying } from "../player/nowPlaying";
@@ -49,8 +49,11 @@ export function Controls({ settings, setSettings, stored, presets, onDiagnostics
         <div className="agv-now">
           {track && (
             <>
-              <strong title={track.title}>{track.title}</strong>
-              {track.artist && <span title={track.artist}>{track.artist}</span>}
+              <div className="agv-now-text">
+                <strong title={track.title}>{track.title}</strong>
+                {track.artist && <span title={track.artist}>{track.artist}</span>}
+              </div>
+              <HeartButton player={player} track={track} />
             </>
           )}
         </div>
@@ -75,6 +78,35 @@ export function Controls({ settings, setSettings, stored, presets, onDiagnostics
         </div>
       </div>
     </div>
+  );
+}
+
+// so songs can be liked without leaving the visualizer or full view
+function HeartButton({ player, track }: { player: PlayerLike | undefined; track: NowPlaying }) {
+  const [liked, setLiked] = useState<boolean | null>(null);
+  const read = useCallback(() => {
+    const value = attempt(() => player?.getHeart?.(), undefined);
+    setLiked(typeof value === "boolean" ? value : null);
+  }, [player]);
+  useEffect(read, [read, track.uri]);
+
+  if (liked === null || track.kind !== "track" || typeof player?.toggleHeart !== "function") return null;
+  const label = liked ? "Remove from Liked Songs" : "Save to Liked Songs";
+  return (
+    <button
+      className={"agv-icon-btn agv-heart" + (liked ? " agv-on" : "")}
+      aria-label={label}
+      aria-pressed={liked}
+      title={label}
+      onClick={() => {
+        attempt(() => player.toggleHeart!(), undefined);
+        setLiked(!liked);
+        // spotify saves in the background, so check what it settled on
+        setTimeout(read, 800);
+      }}
+    >
+      <Icon name={liked ? "heart-on" : "heart"} />
+    </button>
   );
 }
 
