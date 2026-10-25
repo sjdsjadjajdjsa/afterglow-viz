@@ -1,7 +1,10 @@
 # afterglow-viz
 Audio-reactive visualizer and ambient backdrop for Spotify, built as a Spicetify custom app
 
-![afterglow-viz](docs/demo.gif)
+<p align="center">
+  <img src="docs/demo-color.gif" width="49%" alt="afterglow-viz with album colors">
+  <img src="docs/demo.gif" width="49%" alt="afterglow-viz with a black and white cover">
+</p>
 
 Rings, bars, particles and the album art, all moving with the song. It uses Spotify's own analysis of each track, so the beats and loudness actually line up.
 
