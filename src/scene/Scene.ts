@@ -4,7 +4,7 @@ import type { Reactor } from "../reactivity/reactor";
 import { createFrame } from "../reactivity/types";
 import type { Settings } from "../settings";
 import { clamp01 } from "../util/math";
-import { bigChange, FADE_MS } from "./transition";
+import { bigChange, easeSettings, FADE_MS } from "./transition";
 import type { DrawInfo, Layer, SceneTrack } from "./types";
 
 export class Scene {
@@ -19,6 +19,8 @@ export class Scene {
   private snapshot: HTMLCanvasElement | null = null;
   private fadeFrom = -Infinity;
   private lastSettings: Settings | null = null;
+  // what's drawn: the settings with numbers easing toward the real ones
+  private shown: Settings | null = null;
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -76,9 +78,12 @@ export class Scene {
       this.takeSnapshot(now);
     }
     this.lastSettings = settings;
+    if (!this.shown) this.shown = structuredClone(settings);
+    else easeSettings(this.shown, settings, dt * 1000);
+    const shown = this.shown;
     const raw = this.reactor.update(this.clock.positionMs(), this.clock.playing, dt * 1000);
     const frame = this.scaled;
-    const s = settings.sensitivity;
+    const s = shown.sensitivity;
     frame.level = clamp01(raw.level * s);
     frame.beat = clamp01(raw.beat * s);
     frame.beatPhase = raw.beatPhase;
@@ -94,7 +99,7 @@ export class Scene {
     info.size = Math.min(width, height);
     info.time = (now - this.startedAt) / 1000;
     info.dt = dt;
-    info.settings = settings;
+    info.settings = shown;
 
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, width, height);
