@@ -157,6 +157,7 @@ export function Panel({ settings, setSettings, presets, stored, onClose, onDiagn
           <Sub title="Particles">
             <Slider label="Amount" path="particles.amount" value={particles.amount} onChange={(v) => patch("particles", { amount: v })} />
             <Slider label="Speed" path="particles.speed" value={particles.speed} onChange={(v) => patch("particles", { speed: v })} />
+            <Slider label="Size" path="particles.size" value={particles.size} onChange={(v) => patch("particles", { size: v })} />
           </Sub>
         )}
       </details>

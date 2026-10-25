@@ -13,7 +13,7 @@ export interface Settings {
   color: { mode: (typeof COLOR_MODES)[number]; single: string; saturation: number; speed: number };
   centerpiece: { kind: (typeof CENTER_KINDS)[number]; image: string | null; size: number; pulse: number };
   background: { kind: (typeof BACKGROUNDS)[number]; color: string; dim: number };
-  particles: { kind: (typeof PARTICLES)[number]; amount: number; speed: number };
+  particles: { kind: (typeof PARTICLES)[number]; amount: number; speed: number; size: number };
   sensitivity: number;
 }
 
@@ -24,7 +24,7 @@ export const DEFAULT_SETTINGS: Settings = {
   color: { mode: "album", single: "#1ed760", saturation: 1, speed: 0.3 },
   centerpiece: { kind: "album", image: null, size: 0.5, pulse: 0.5 },
   background: { kind: "art-blur", color: "#000000", dim: 0.6 },
-  particles: { kind: "dust", amount: 0.4, speed: 0.4 },
+  particles: { kind: "dust", amount: 0.4, speed: 0.4, size: 0.5 },
   sensitivity: 1,
 };
 
@@ -44,6 +44,7 @@ export const RANGES: Record<string, [number, number, number]> = {
   "background.dim": [0, 1, 0.01],
   "particles.amount": [0, 1, 0.01],
   "particles.speed": [0, 1, 0.01],
+  "particles.size": [0, 1, 0.01],
   sensitivity: [0, 2, 0.01],
 };
 

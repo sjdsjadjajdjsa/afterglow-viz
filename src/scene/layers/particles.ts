@@ -52,6 +52,8 @@ export function createParticlesLayer(): Layer {
       if (kind === "dust" || kind === "fireflies") paintColors(d, actx, kind === "fireflies");
 
       const { ctx, time, size } = d;
+      // 0.5 is the original look
+      const scale = 0.4 + 1.2 * d.settings.particles.size;
       const { x, y, radius, depth, seed, phase, age } = field;
       const minR = 0.7 * d.dpr;
       const beat = frame.beat;
@@ -90,7 +92,7 @@ export function createParticlesLayer(): Layer {
         alpha *= fade;
         if (alpha <= 0.01) continue;
         ctx.globalAlpha = alpha > 1 ? 1 : alpha;
-        const r = Math.max(minR, radius[i] * size * grow) * spread;
+        const r = Math.max(minR, radius[i] * size * grow * scale) * spread;
         ctx.drawImage(atlas, cell * SPRITE, 0, SPRITE, SPRITE, x[i] * d.width - r, y[i] * d.height - r, r * 2, r * 2);
       }
     },
