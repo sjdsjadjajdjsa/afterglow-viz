@@ -1,7 +1,15 @@
 {
   "name": "afterglow-viz",
   "description": "Audio-reactive visualizer and ambient backdrop for the track you're playing.",
-  "tags": ["visualizer", "ambient", "background", "audio-reactive", "fullscreen"],
+  "preview": "docs/preview.png",
+  "readme": "README.md",
+  "tags": [
+    "visualizer",
+    "ambient",
+    "background",
+    "audio-reactive",
+    "fullscreen"
+  ],
   "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\"><circle cx=\"12\" cy=\"12\" r=\"2.2\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"12\" cy=\"12\" r=\"5.8\"/><circle cx=\"12\" cy=\"12\" r=\"9.55\" stroke-dasharray=\"2.5 2.5\"/></svg>",
   "active-icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\"><circle cx=\"12\" cy=\"12\" r=\"3.4\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"12\" cy=\"12\" r=\"6.4\"/><circle cx=\"12\" cy=\"12\" r=\"9.55\" stroke-width=\"2.6\" stroke-dasharray=\"2.5 2.5\"/></svg>"
 }
