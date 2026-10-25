@@ -12,13 +12,14 @@ Rings, bars, particles and the album art, all moving with the song. It uses Spot
 
 ### 1. Get Spicetify
 
-Skip this if you already have it. Close Spotify first.
+[Spicetify](https://spicetify.app) ([GitHub](https://github.com/spicetify/cli)) is what lets Spotify run custom apps like this one. Skip this step if you already have it. Close Spotify first.
+
+> **Windows users:** Spotify has to be the version from [spotify.com/download](https://www.spotify.com/download). The Microsoft Store version won't work with Spicetify.
 
 - **Windows:** open PowerShell and paste this:
   ```
   iwr -useb https://raw.githubusercontent.com/spicetify/cli/main/install.ps1 | iex
   ```
-  Spotify has to be the one from spotify.com, not the Microsoft Store.
 - **Mac or Linux:** open Terminal and paste this:
   ```
   curl -fsSL https://raw.githubusercontent.com/spicetify/cli/main/install.sh | sh
