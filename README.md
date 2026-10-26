@@ -1,5 +1,14 @@
-# afterglow-viz
-Audio-reactive visualizer and ambient backdrop for Spotify, built as a Spicetify custom app
+<h1 align="center">afterglow-viz</h1>
+
+<p align="center">
+  Audio-reactive visualizer and ambient backdrop for Spotify, built as a Spicetify custom app.
+</p>
+
+<p align="center">
+  <a href="https://github.com/sjdsjadjajdjsa/afterglow-viz/actions/workflows/ci.yml"><img src="https://github.com/sjdsjadjajdjsa/afterglow-viz/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/sjdsjadjajdjsa/afterglow-viz/releases/latest"><img src="https://img.shields.io/github/v/release/sjdsjadjajdjsa/afterglow-viz" alt="Latest release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/sjdsjadjajdjsa/afterglow-viz" alt="MIT license"></a>
+</p>
 
 <p align="center">
   <img src="docs/demo-color.gif" width="49%" alt="afterglow-viz with album colors">
@@ -7,6 +16,10 @@ Audio-reactive visualizer and ambient backdrop for Spotify, built as a Spicetify
 </p>
 
 Rings, bars, particles and the album art, all moving with the song. It uses Spotify's own analysis of each track, so the beats and loudness actually line up.
+
+- Colors come from the album art and change with each track.
+- Pick a look, or mix your own and save it.
+- Full view fills the Spotify window.
 
 ## Install
 
@@ -74,7 +87,7 @@ If the app disappears after Spotify updates itself, run `spicetify apply`.
 
 ## Build it yourself
 
-Needs Node 22.12 or newer.
+Needs Node 22.12 or newer. See [CONTRIBUTING.md](CONTRIBUTING.md) for the checks to run before sending a change.
 
 ```
 npm install
@@ -82,3 +95,7 @@ npm run install-local
 ```
 
 `npm run dev` opens a test page with a fake Spotify player at http://127.0.0.1:5173/dev.html.
+
+## License
+
+[MIT](LICENSE)
