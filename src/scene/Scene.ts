@@ -7,9 +7,16 @@ import { clamp01 } from "../util/math";
 import { bigChange, easeSettings, FADE_MS } from "./transition";
 import type { DrawInfo, Layer, SceneTrack } from "./types";
 
+// past this many device pixels the canvas renders smaller and the browser scales it up
+const PIXEL_BUDGET = 2_000_000;
+const FRAME_MS = 1000 / 60;
+const PAUSED_FRAME_MS = 1000 / 30;
+
 export class Scene {
   private raf = 0;
   private last = 0;
+  private due = 0;
+  private ctx: CanvasRenderingContext2D | null = null;
   private startedAt = 0;
   private readonly scaled = createFrame();
   private readonly broken = new Set<Layer>();
@@ -60,14 +67,20 @@ export class Scene {
 
   private tick = (now: number): void => {
     this.raf = requestAnimationFrame(this.tick);
-    const ctx = this.canvas.getContext("2d");
+    // high refresh screens would otherwise draw two or more times as often
+    if (now < this.due - 1) return;
+    this.due = Math.max(this.due + (this.clock.playing ? FRAME_MS : PAUSED_FRAME_MS), now);
+    const ctx = (this.ctx ??= this.canvas.getContext("2d", { alpha: false }));
     if (!ctx) return;
     const dt = this.last ? Math.min(0.25, (now - this.last) / 1000) : 0;
     this.last = now;
 
-    const dpr = window.devicePixelRatio || 1;
-    const width = Math.max(1, Math.round(this.canvas.clientWidth * dpr));
-    const height = Math.max(1, Math.round(this.canvas.clientHeight * dpr));
+    const cw = this.canvas.clientWidth;
+    const ch = this.canvas.clientHeight;
+    const screenDpr = window.devicePixelRatio || 1;
+    const dpr = screenDpr * Math.min(1, Math.sqrt(PIXEL_BUDGET / Math.max(1, cw * ch * screenDpr * screenDpr)));
+    const width = Math.max(1, Math.round(cw * dpr));
+    const height = Math.max(1, Math.round(ch * dpr));
     if (this.canvas.width !== width || this.canvas.height !== height) {
       this.canvas.width = width;
       this.canvas.height = height;

@@ -140,11 +140,26 @@ export function createShapesLayer(): Layer {
           a.strokeStyle = d.css(hueAt(j), (0.3 + 0.4 * barLevel[j]) * fadeAt(j));
           a.stroke();
         }
+        const blur = Math.max(1, (size / 4) * 0.012);
         b.clearRect(0, 0, gw, gh);
-        b.filter = `blur(${Math.max(1, (size / 4) * 0.012)}px)`;
+        b.filter = `blur(${blur}px)`;
         b.drawImage(glowA, 0, 0);
         b.filter = "none";
-        ctx.drawImage(glowB, 0, 0, d.width, d.height);
+        // only the part with bars in it is scaled up, the rest of the glow canvas is empty
+        let tallest = 0;
+        for (let j = 0; j < n; j++) tallest = Math.max(tallest, barHalf[j]);
+        const sx = gw / d.width;
+        const sy = gh / d.height;
+        const pad = a.lineWidth / 2 + blur * 3 / sx;
+        const reachX = (g.inner + g.slot * Math.max(0, n - 1) + pad) * sx;
+        const reachY = (tallest + pad) * sy;
+        const x0 = Math.max(0, Math.floor(cx * sx - reachX));
+        const y0 = Math.max(0, Math.floor(cy * sy - reachY));
+        const x1 = Math.min(gw, Math.ceil(cx * sx + reachX));
+        const y1 = Math.min(gh, Math.ceil(cy * sy + reachY));
+        if (x1 > x0 && y1 > y0) {
+          ctx.drawImage(glowB, x0, y0, x1 - x0, y1 - y0, x0 / sx, y0 / sy, (x1 - x0) / sx, (y1 - y0) / sy);
+        }
       }
     }
 
