@@ -11,6 +11,7 @@ import {
   type RingGeometry,
   type SpectrumGeometry,
 } from "../src/scene/shapes/geometry";
+import { PROFILES } from "../src/scene/performance";
 import type { DrawInfo, SceneTrack } from "../src/scene/types";
 import { DEFAULT_SETTINGS, RANGES, type Settings } from "../src/settings";
 
@@ -176,6 +177,7 @@ function draw(s: Settings, level = 0.6): Call[] {
     dt: 1 / 60,
     frame,
     settings: s,
+    profile: PROFILES.balanced,
     track,
     color: (t) => getColor(s, track, t),
     css: (t, a = 1) => toCss(getColor(s, track, t), a),
@@ -237,6 +239,7 @@ describe("shapes layer", () => {
         dt: 1 / 60,
         frame: createFrame(),
         settings: s,
+        profile: PROFILES.balanced,
         track,
         color: (t) => getColor(s, track, t),
         css: (t, a = 1) => toCss(getColor(s, track, t), a),

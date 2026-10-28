@@ -34,6 +34,12 @@ const BACKGROUNDS: Options<Settings["background"]["kind"]> = [
   ["gradient", "Gradient"],
   ["solid", "Plain"],
 ];
+const PERFORMANCE: Options<Settings["performance"]> = [
+  ["auto", "Auto"],
+  ["quality", "Quality"],
+  ["balanced", "Balanced"],
+  ["saver", "Saver"],
+];
 const PARTICLES: Options<Settings["particles"]["kind"]> = [
   ["none", "None"],
   ["dust", "Dust"],
@@ -114,6 +120,10 @@ export function Panel({ settings, setSettings, presets, stored, onClose, onDiagn
         <Slider label="Intensity" hideLabel path="sensitivity" value={settings.sensitivity} onChange={(v) => setSettings((s) => ({ ...s, sensitivity: v }))} />
       </Section>
 
+      <Section title="Performance">
+        <Choice options={PERFORMANCE} value={settings.performance} onChange={(v) => setSettings((s) => ({ ...s, performance: v }))} />
+      </Section>
+
       <details className="agv-more">
         <summary>Fine tune</summary>
         {shape !== "spectrum" && (
@@ -165,7 +175,7 @@ export function Panel({ settings, setSettings, presets, stored, onClose, onDiagn
       <footer className="agv-panel-foot">
         {!(stored && presets.stored) && <p className="agv-note">Kept for this session only. Storage is full or turned off.</p>}
         <div className="agv-foot-row">
-          <button className="agv-link" onClick={() => setSettings((s) => keepImage(sanitize(DEFAULT_SETTINGS), s))}>
+          <button className="agv-link" onClick={() => setSettings((s) => keepOwn(sanitize(DEFAULT_SETTINGS), s))}>
             Reset
           </button>
           <button className="agv-link" onClick={onDiagnostics}>
@@ -184,8 +194,8 @@ function Looks({ settings, setSettings, presets }: Pick<Props, "settings" | "set
   const existing = clean ? findPreset(presets.list, clean) : undefined;
 
   const chip = (p: Preset, own: boolean) => (
-    <span key={(own ? "u:" : "b:") + p.name} className={"agv-chip" + (sameSettings(keepImage(p.settings, settings), settings) ? " agv-chip-on" : "")}>
-      <button className="agv-chip-name" onClick={() => setSettings((s) => keepImage(sanitize(p.settings), s))}>
+    <span key={(own ? "u:" : "b:") + p.name} className={"agv-chip" + (sameSettings(keepOwn(p.settings, settings), settings) ? " agv-chip-on" : "")}>
+      <button className="agv-chip-name" onClick={() => setSettings((s) => keepOwn(sanitize(p.settings), s))}>
         {p.name}
       </button>
       {own && (
@@ -331,9 +341,11 @@ function Slider({ label, hideLabel, path, value, onChange }: SliderProps) {
 
 // presets without their own image keep the one the user picked, so trying a
 // look doesn't throw the picked image away
-function keepImage(next: Settings, current: Settings): Settings {
-  if (next.centerpiece.image || !current.centerpiece.image) return next;
-  return { ...next, centerpiece: { ...next.centerpiece, image: current.centerpiece.image } };
+// presets and reset change the look, not the picked picture or how hard this machine works
+function keepOwn(next: Settings, current: Settings): Settings {
+  const out = next.performance === current.performance ? next : { ...next, performance: current.performance };
+  if (out.centerpiece.image || !current.centerpiece.image) return out;
+  return { ...out, centerpiece: { ...out.centerpiece, image: current.centerpiece.image } };
 }
 
 function sameSettings(a: unknown, b: unknown): boolean {

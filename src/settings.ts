@@ -5,6 +5,7 @@ export const COLOR_MODES = ["rainbow", "album", "centerpiece", "single"] as cons
 export const CENTER_KINDS = ["none", "album", "image"] as const;
 export const BACKGROUNDS = ["solid", "art-blur", "gradient"] as const;
 export const PARTICLES = ["none", "dust", "snow", "stars", "fireflies"] as const;
+export const PERFORMANCE = ["auto", "quality", "balanced", "saver"] as const;
 
 export interface Settings {
   shape: (typeof SHAPES)[number];
@@ -15,6 +16,8 @@ export interface Settings {
   background: { kind: (typeof BACKGROUNDS)[number]; color: string; dim: number };
   particles: { kind: (typeof PARTICLES)[number]; amount: number; speed: number; size: number };
   sensitivity: number;
+  // how much work each frame may cost, kept when a preset is picked
+  performance: (typeof PERFORMANCE)[number];
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -26,6 +29,7 @@ export const DEFAULT_SETTINGS: Settings = {
   background: { kind: "art-blur", color: "#000000", dim: 0.6 },
   particles: { kind: "dust", amount: 0.4, speed: 0.4, size: 0.5 },
   sensitivity: 1,
+  performance: "auto",
 };
 
 // [min, max, step] for every number setting, by path
@@ -54,6 +58,7 @@ const CHOICES: Record<string, readonly string[]> = {
   "centerpiece.kind": CENTER_KINDS,
   "background.kind": BACKGROUNDS,
   "particles.kind": PARTICLES,
+  performance: PERFORMANCE,
 };
 
 const HEX = /^#[0-9a-f]{6}$/i;

@@ -2,6 +2,7 @@ import type { ColorTrack, RGB } from "../color/getColor";
 import type { NowPlaying } from "../player/nowPlaying";
 import type { ReactiveFrame } from "../reactivity/types";
 import type { Settings } from "../settings";
+import type { Profile } from "./performance";
 
 export interface SceneTrack extends ColorTrack {
   nowPlaying: NowPlaying | null;
@@ -25,6 +26,7 @@ export interface DrawInfo {
   dt: number;
   frame: ReactiveFrame;
   settings: Settings;
+  profile: Profile;
   track: SceneTrack;
   // getColor(settings, track, t)
   color(t: number): RGB;

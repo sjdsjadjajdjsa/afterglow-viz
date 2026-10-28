@@ -36,7 +36,7 @@ export function createParticlesLayer(): Layer {
   return {
     draw(d: DrawInfo) {
       const { kind, amount, speed } = d.settings.particles;
-      field.sync(kind, amount);
+      field.sync(kind, amount * d.profile.particles);
       if (field.count === 0) return;
       const { frame } = d;
       field.step({ width: d.width, height: d.height, size: d.size, dt: d.dt, time: d.time, speed, level: frame.level, beat: frame.beat });

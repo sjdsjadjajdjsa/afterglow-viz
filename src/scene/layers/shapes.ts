@@ -8,17 +8,24 @@ import {
 } from "../shapes/geometry";
 import type { DrawInfo, Layer } from "../types";
 
-const STEPS = 160;
 const TAU = Math.PI * 2;
 
 export function createShapesLayer(): Layer {
   const rings = createRingGeometry();
   const spectrum = createSpectrumGeometry();
-  const cos = new Float32Array(STEPS);
-  const sin = new Float32Array(STEPS);
-  for (let k = 0; k < STEPS; k++) {
-    cos[k] = Math.cos((k / STEPS) * TAU);
-    sin[k] = Math.sin((k / STEPS) * TAU);
+  // unit circle points for each ring detail the profiles use
+  const circles = new Map<number, [Float32Array, Float32Array]>();
+  function circle(steps: number): [Float32Array, Float32Array] {
+    let c = circles.get(steps);
+    if (!c) {
+      c = [new Float32Array(steps), new Float32Array(steps)];
+      for (let k = 0; k < steps; k++) {
+        c[0][k] = Math.cos((k / steps) * TAU);
+        c[1][k] = Math.sin((k / steps) * TAU);
+      }
+      circles.set(steps, c);
+    }
+    return c;
   }
 
   function drawRings(d: DrawInfo) {
@@ -27,6 +34,9 @@ export function createShapesLayer(): Layer {
     const drift = d.time * d.settings.color.speed * 0.1;
     const bands = frame.bands;
     const clear = clearance(d.settings, size);
+    const steps = d.profile.ringSteps;
+    const [cos, sin] = circle(steps);
+    const halo = d.profile.ringHalo;
     ctx.lineJoin = "round";
     for (let i = 0; i < g.count; i++) {
       const start = g.bandStart[i];
@@ -56,8 +66,8 @@ export function createShapesLayer(): Layer {
       }
 
       ctx.beginPath();
-      for (let k = 0; k < STEPS; k++) {
-        const th = (k / STEPS) * TAU;
+      for (let k = 0; k < steps; k++) {
+        const th = (k / steps) * TAU;
         const rr =
           r + a0 * Math.sin(lobes * th + p0) + a1 * Math.sin((lobes + 2) * th + p1) + a2 * Math.sin((2 * lobes + 1) * th + p2);
         const x = d.cx + rr * cos[k];
@@ -69,12 +79,19 @@ export function createShapesLayer(): Layer {
 
       const t = i / g.count + drift;
       const w = g.lineWidth * (1 + 0.6 * e + 0.4 * frame.beat * (1 - depth));
-      ctx.lineWidth = w * 2.5 + size * 0.012;
-      ctx.strokeStyle = d.css(t, 0.05 + 0.08 * e);
-      ctx.stroke();
-      ctx.lineWidth = w * 1.6;
-      ctx.strokeStyle = d.css(t, 0.14 + 0.18 * e);
-      ctx.stroke();
+      if (halo === 2) {
+        ctx.lineWidth = w * 2.5 + size * 0.012;
+        ctx.strokeStyle = d.css(t, 0.05 + 0.08 * e);
+        ctx.stroke();
+        ctx.lineWidth = w * 1.6;
+        ctx.strokeStyle = d.css(t, 0.14 + 0.18 * e);
+        ctx.stroke();
+      } else if (halo === 1) {
+        // one stroke between the two soft ones
+        ctx.lineWidth = w * 2 + size * 0.006;
+        ctx.strokeStyle = d.css(t, 0.12 + 0.16 * e);
+        ctx.stroke();
+      }
       ctx.lineWidth = w;
       ctx.strokeStyle = d.css(t, 0.6 + 0.4 * e);
       ctx.stroke();
@@ -116,7 +133,7 @@ export function createShapesLayer(): Layer {
     // soft halo like the rings have: the bars drawn small, blurred, and laid
     // underneath scaled back up. blur spreads the same way on every side, so
     // the ends look like the sides
-    if (typeof document !== "undefined") {
+    if (d.profile.spectrumGlow && typeof document !== "undefined") {
       const gw = Math.max(1, Math.ceil(d.width / 4));
       const gh = Math.max(1, Math.ceil(d.height / 4));
       glowA ??= document.createElement("canvas");

@@ -3,6 +3,7 @@ import * as ReactDOM from "react-dom";
 import type { PlayerClock } from "../player/clock";
 import type { Reactor } from "../reactivity/reactor";
 import { TrackAssets } from "../scene/assets";
+import { Background } from "../scene/background";
 import { createLayers } from "../scene/layers";
 import { Scene } from "../scene/Scene";
 import type { Settings } from "../settings";
@@ -20,6 +21,7 @@ interface Props {
 export function Visualizer({ clock, reactor, settings, full = false, children }: Props) {
   const rootRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const bgRef = useRef<HTMLDivElement>(null);
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
   const [assets] = useState(() => new TrackAssets());
@@ -38,13 +40,18 @@ export function Visualizer({ clock, reactor, settings, full = false, children }:
   }, [assets, clock]);
 
   useEffect(() => {
-    const scene = new Scene(canvasRef.current!, clock, reactor, () => settingsRef.current, assets.track, createLayers());
+    const background = new Background(bgRef.current!);
+    const scene = new Scene(canvasRef.current!, clock, reactor, () => settingsRef.current, assets.track, createLayers(), background);
     scene.start();
-    return () => scene.stop();
+    return () => {
+      scene.stop();
+      background.dispose();
+    };
   }, [assets, clock, reactor, full]);
 
   const view = (
     <div ref={rootRef} className={"agv-viz" + (full ? " agv-full" : "")}>
+      <div ref={bgRef} className="agv-bg" />
       <canvas ref={canvasRef} className="agv-canvas" />
       {children}
     </div>

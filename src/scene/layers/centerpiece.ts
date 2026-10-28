@@ -1,4 +1,5 @@
 import { coverCrop, createCrop } from "../extras/cover";
+import { createCanvas } from "../extras/sprites";
 import type { DrawInfo, Layer } from "../types";
 
 const TAU = Math.PI * 2;
@@ -11,6 +12,53 @@ export function createCenterpieceLayer(): Layer {
   const crop = createCrop();
   let shown = 0;
   let lastImg: HTMLImageElement | null = null;
+  let shadow: HTMLCanvasElement | null = null;
+  let shadowFor = 0;
+  let art: HTMLCanvasElement | null = null;
+  let artFor = "";
+  let artImg: HTMLImageElement | null = null;
+
+  function shadowSprite(r: number): HTMLCanvasElement | null {
+    if (shadow && shadowFor === r) return shadow;
+    const e = Math.ceil(r * 1.4);
+    shadow ??= createCanvas(1, 1);
+    shadow.width = shadow.height = e * 2;
+    const ctx = shadow.getContext("2d");
+    if (!ctx) return null;
+    const g = ctx.createRadialGradient(e, e + r * 0.04, r * 0.85, e, e + r * 0.04, r * 1.32);
+    g.addColorStop(0, "rgba(0,0,0,0.5)");
+    g.addColorStop(0.4, "rgba(0,0,0,0.22)");
+    g.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(e, e, r * 1.32, 0, TAU);
+    ctx.fill();
+    shadowFor = r;
+    return shadow;
+  }
+
+  function artSprite(img: HTMLImageElement, r: number, dpr: number): HTMLCanvasElement | null {
+    const key = r + "|" + dpr;
+    if (art && artImg === img && artFor === key) return art;
+    coverCrop(img.naturalWidth || img.width, img.naturalHeight || img.height, 1, crop);
+    if (crop.sw <= 0) return null;
+    art ??= createCanvas(1, 1);
+    art.width = art.height = r * 2;
+    const ctx = art.getContext("2d");
+    if (!ctx) return null;
+    ctx.beginPath();
+    ctx.arc(r, r, r, 0, TAU);
+    ctx.save();
+    ctx.clip();
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(img, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, r * 2, r * 2);
+    ctx.restore();
+    rim(ctx, r, r, r, dpr);
+    artImg = img;
+    artFor = key;
+    return art;
+  }
 
   return {
     draw(d: DrawInfo) {
@@ -27,15 +75,15 @@ export function createCenterpieceLayer(): Layer {
       }
       shown = Math.min(1, shown + d.dt / 0.4);
 
-      // soft shadow so it floats over the shapes
-      const shadow = ctx.createRadialGradient(cx, cy + r * 0.04, r * 0.85, cx, cy + r * 0.04, r * 1.32);
-      shadow.addColorStop(0, "rgba(0,0,0,0.5)");
-      shadow.addColorStop(0.4, "rgba(0,0,0,0.22)");
-      shadow.addColorStop(1, "rgba(0,0,0,0)");
-      ctx.fillStyle = shadow;
-      ctx.beginPath();
-      ctx.arc(cx, cy, r * 1.32, 0, TAU);
-      ctx.fill();
+      // the shadow and the clipped art only change with the image and size, so
+      // they're painted once at the biggest pulse and scaled down to fit
+      const big = Math.ceil(centerRadius(d.size, cp.size, cp.pulse, 1));
+      const k = r / big;
+      const shadow = shadowSprite(big);
+      if (shadow) {
+        const e = shadow.width / 2;
+        ctx.drawImage(shadow, cx - e * k, cy - e * k, e * 2 * k, e * 2 * k);
+      }
 
       // a faint halo in the current color that swells on the beat
       const glow = 0.12 + 0.3 * cp.pulse * frame.beat;
@@ -60,25 +108,23 @@ export function createCenterpieceLayer(): Layer {
       ctx.fillStyle = "rgba(255,255,255,0.06)";
       ctx.fill();
 
-      if (img) {
-        coverCrop(img.naturalWidth || img.width, img.naturalHeight || img.height, 1, crop);
-        if (crop.sw > 0) {
-          ctx.save();
-          ctx.clip();
-          ctx.globalAlpha = shown;
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = "high";
-          ctx.drawImage(img, crop.sx, crop.sy, crop.sw, crop.sh, cx - r, cy - r, r * 2, r * 2);
-          ctx.restore();
-        }
+      const art = img ? artSprite(img, big, d.dpr) : null;
+      if (art) {
+        ctx.globalAlpha = shown;
+        ctx.drawImage(art, cx - r, cy - r, r * 2, r * 2);
+        ctx.globalAlpha = 1;
+      } else {
+        rim(ctx, cx, cy, r, d.dpr);
       }
-
-      // a thin light rim keeps the edge crisp on any background
-      ctx.lineWidth = Math.max(1, d.dpr);
-      ctx.strokeStyle = "rgba(255,255,255,0.14)";
-      ctx.beginPath();
-      ctx.arc(cx, cy, r - ctx.lineWidth / 2, 0, TAU);
-      ctx.stroke();
     },
   };
+}
+
+// a thin light rim keeps the edge crisp on any background
+function rim(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, dpr: number): void {
+  ctx.lineWidth = Math.max(1, dpr);
+  ctx.strokeStyle = "rgba(255,255,255,0.14)";
+  ctx.beginPath();
+  ctx.arc(cx, cy, r - ctx.lineWidth / 2, 0, TAU);
+  ctx.stroke();
 }
