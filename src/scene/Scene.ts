@@ -1,4 +1,4 @@
-import { getColor, toCss, type RGB } from "../color/getColor";
+import { getColor, type RGB } from "../color/getColor";
 import type { PlayerClock } from "../player/clock";
 import type { Reactor } from "../reactivity/reactor";
 import { createFrame } from "../reactivity/types";
@@ -8,6 +8,9 @@ import type { Background } from "./background";
 import { AutoLevel, PROFILES, type Profile } from "./performance";
 import { bigChange, easeSettings, FADE_MS } from "./transition";
 import type { DrawInfo, Layer, SceneTrack } from "./types";
+
+const CSS_CACHE_SIZE = 4096;
+const Q = 127 / 255;
 
 export class Scene {
   private raf = 0;
@@ -28,7 +31,9 @@ export class Scene {
   private shown: Settings | null = null;
   // the shapes ask for the same color a few times in a row, once per stroke
   private cssT = NaN;
-  private cssRgb: RGB = [0, 0, 0];
+  private readonly cssRgb: RGB = [0, 0, 0];
+  private readonly colorRgb: RGB = [0, 0, 0];
+  private readonly cssCache = new Map<number, string>();
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -53,16 +58,35 @@ export class Scene {
       settings: getSettings(),
       profile: PROFILES.balanced,
       track,
-      color: (t) => getColor(info.settings, track, t),
+      color: (t) => getColor(info.settings, track, t, this.colorRgb),
       css: (t, alpha = 1) => {
         if (t !== this.cssT) {
           this.cssT = t;
-          this.cssRgb = getColor(info.settings, track, t);
+          getColor(info.settings, track, t, this.cssRgb);
         }
-        return toCss(this.cssRgb, alpha);
+        return this.cssString(alpha);
       },
     };
     this.info = info;
+  }
+
+  // canvas keeps 8 bit alpha anyway, so equal keys look identical
+  // 7 bits per channel and 8 bits of alpha keep the key a small integer, so
+  // looking it up allocates nothing. the rounding is under one color step
+  private cssString(alpha: number): string {
+    const rgb = this.cssRgb;
+    const r = Math.round(rgb[0] * Q);
+    const g = Math.round(rgb[1] * Q);
+    const b = Math.round(rgb[2] * Q);
+    const a = Math.round((alpha < 0 ? 0 : alpha > 1 ? 1 : alpha) * 255);
+    const key = (((((r << 7) | g) << 7) | b) << 8) | a;
+    let css = this.cssCache.get(key);
+    if (css === undefined) {
+      if (this.cssCache.size >= CSS_CACHE_SIZE) this.cssCache.clear();
+      css = `rgba(${Math.round(r / Q)},${Math.round(g / Q)},${Math.round(b / Q)},${(a / 255).toFixed(3)})`;
+      this.cssCache.set(key, css);
+    }
+    return css;
   }
 
   start(): void {

@@ -28,7 +28,7 @@ export interface DrawInfo {
   settings: Settings;
   profile: Profile;
   track: SceneTrack;
-  // getColor(settings, track, t)
+  // getColor(settings, track, t), into one shared array that the next call overwrites
   color(t: number): RGB;
   css(t: number, alpha?: number): string;
 }

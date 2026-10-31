@@ -8,45 +8,53 @@ export interface ColorTrack {
 }
 
 const TAU = Math.PI * 2;
+const HUE_OFFSETS = [0, 8, 4];
 
 // every color mode goes through here, every frame. t is a position along
 // the palette, 0..1, wrapping. no state, so switching modes can't go stale
-export function getColor(settings: Settings, track: ColorTrack, t: number): RGB {
+export function getColor(settings: Settings, track: ColorTrack, t: number, out: RGB = [0, 0, 0]): RGB {
   const { mode, single, saturation } = settings.color;
   const u = Number.isFinite(t) ? t - Math.floor(t) : 0;
-  let rgb: RGB;
-  if (mode === "single") rgb = singleColor(hexToRgb(single), u);
-  else if (mode === "album" && track.artPalette?.length) rgb = samplePalette(track.artPalette, u);
-  else if (mode === "centerpiece" && track.centerPalette?.length) rgb = samplePalette(track.centerPalette, u);
-  else if (mode === "centerpiece" && track.artPalette?.length) rgb = samplePalette(track.artPalette, u);
-  else rgb = rainbow(u);
-  return saturate(rgb, Number.isFinite(saturation) ? saturation : 1);
+  if (mode === "single") singleColor(hexToRgb(single, out), u, out);
+  else if (mode === "album" && track.artPalette?.length) samplePalette(track.artPalette, u, out);
+  else if (mode === "centerpiece" && track.centerPalette?.length) samplePalette(track.centerPalette, u, out);
+  else if (mode === "centerpiece" && track.artPalette?.length) samplePalette(track.artPalette, u, out);
+  else rainbow(u, out);
+  return saturate(out, Number.isFinite(saturation) ? saturation : 1, out);
 }
 
 // blue and violet look much darker than yellow at the same hsl lightness,
 // so lift them a little
-export function rainbow(u: number): RGB {
-  return hslToRgb(u, 1, 0.61 + 0.07 * Math.cos(TAU * (u - 0.68)));
+export function rainbow(u: number, out: RGB = [0, 0, 0]): RGB {
+  return hslToRgb(u, 1, 0.61 + 0.07 * Math.cos(TAU * (u - 0.68)), out);
 }
 
 // the chosen color with a gentle brightness swell along t, so it still moves
-export function singleColor([r, g, b]: RGB, u: number): RGB {
+export function singleColor([r, g, b]: RGB, u: number, out: RGB = [0, 0, 0]): RGB {
   const w = 0.5 - 0.5 * Math.cos(TAU * u);
   const k = 0.88 + 0.12 * (1 - w);
   const lift = 40 * w * w;
-  return [r * k + lift, g * k + lift, b * k + lift];
+  out[0] = r * k + lift;
+  out[1] = g * k + lift;
+  out[2] = b * k + lift;
+  return out;
 }
 
 // eased blend between neighbors in hsl, the short way around the hue
 // circle, so two distant hues don't pass through gray halfway
-export function samplePalette(palette: RGB[], t: number): RGB {
+export function samplePalette(palette: RGB[], t: number, out: RGB = [0, 0, 0]): RGB {
   const n = palette.length;
   const p = (t - Math.floor(t)) * n;
   const i = Math.floor(p) % n;
   const a = palette[i];
   const b = palette[(i + 1) % n];
   const x = p - Math.floor(p);
-  if (x === 0 || a === b) return [clamp255(a[0]), clamp255(a[1]), clamp255(a[2])];
+  if (x === 0 || a === b) {
+    out[0] = clamp255(a[0]);
+    out[1] = clamp255(a[1]);
+    out[2] = clamp255(a[2]);
+    return out;
+  }
   const f = x * x * (3 - 2 * x);
   const [ha, sa, la] = rgbToHsl(a[0], a[1], a[2]);
   const [hb, sb, lb] = rgbToHsl(b[0], b[1], b[2]);
@@ -59,33 +67,37 @@ export function samplePalette(palette: RGB[], t: number): RGB {
   let h = h0 + dh * f;
   if (h < 0) h += 1;
   else if (h >= 1) h -= 1;
-  return hslToRgb(h, sa + (sb - sa) * f, la + (lb - la) * f);
+  return hslToRgb(h, sa + (sb - sa) * f, la + (lb - la) * f, out);
 }
 
-export function saturate([r, g, b]: RGB, amount: number): RGB {
+export function saturate([r, g, b]: RGB, amount: number, out: RGB = [0, 0, 0]): RGB {
   const gray = 0.299 * r + 0.587 * g + 0.114 * b;
-  return [
-    clamp255(gray + (r - gray) * amount),
-    clamp255(gray + (g - gray) * amount),
-    clamp255(gray + (b - gray) * amount),
-  ];
+  out[0] = clamp255(gray + (r - gray) * amount);
+  out[1] = clamp255(gray + (g - gray) * amount);
+  out[2] = clamp255(gray + (b - gray) * amount);
+  return out;
 }
 
 function clamp255(x: number): number {
   return x < 0 ? 0 : x > 255 ? 255 : x;
 }
 
-export function hexToRgb(hex: string): RGB {
+export function hexToRgb(hex: string, out: RGB = [0, 0, 0]): RGB {
   const n = parseInt(/^#?([0-9a-f]{6})$/i.exec(hex)?.[1] ?? "ffffff", 16);
-  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  out[0] = (n >> 16) & 255;
+  out[1] = (n >> 8) & 255;
+  out[2] = n & 255;
+  return out;
 }
 
 // h, s, l in 0..1
-export function hslToRgb(h: number, s: number, l: number): RGB {
-  const k = (n: number) => (n + h * 12) % 12;
+export function hslToRgb(h: number, s: number, l: number, out: RGB = [0, 0, 0]): RGB {
   const a = s * Math.min(l, 1 - l);
-  const f = (n: number) => 255 * (l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1)));
-  return [f(0), f(8), f(4)];
+  for (let i = 0; i < 3; i++) {
+    const k = (HUE_OFFSETS[i] + h * 12) % 12;
+    out[i] = 255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)));
+  }
+  return out;
 }
 
 // h, s, l in 0..1
